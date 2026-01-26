@@ -499,17 +499,6 @@ const TripDetailsPage = () => {
                         <p>No photos added yet.</p>
                     )}
                 </div>
-
-
-
-
-
-
-
-
-
-
-
                 {/* Lightbox Modal */}
                 {lightboxOpen && trip.photos && trip.photos.length > 0 && (
                     <div
@@ -549,22 +538,8 @@ const TripDetailsPage = () => {
                         </div>
                     </div>
                 )}
-
-
-
-
-
-
-
-
-
-
-
             </div>
-
-
         </div>
-
     );
 };
 
