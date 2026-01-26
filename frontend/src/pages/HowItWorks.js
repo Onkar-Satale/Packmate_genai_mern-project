@@ -63,16 +63,16 @@ export default function HowItWorks() {
 
   // UPDATED Try Now button click
   const handleClick = () => {
-  const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
-  if (!token) {
-    localStorage.setItem('redirectAfterLogin', '/packing-assistant');
-    navigate('/login');
-    return;
-  }
+    if (!token) {
+      localStorage.setItem('redirectAfterLogin', '/packing-assistant');
+      navigate('/login');
+      return;
+    }
 
-  navigate('/packing-assistant'); // ✅ THIS IS THE FIX
-};
+    navigate('/packing-assistant'); // ✅ THIS IS THE FIX
+  };
 
 
   // Geolocation fetch

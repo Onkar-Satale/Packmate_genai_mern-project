@@ -70,13 +70,13 @@
     border-radius: 12px;
     padding: 20px;
     width: 100%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .trip-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .trip-card h3 {
@@ -109,7 +109,7 @@
 .details-btn:hover {
     background-color: #1d4ed8;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Delete Button (Top Right) */
@@ -125,14 +125,14 @@
     font-size: 0.85rem;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
 }
 
 .delete-trip-btn:hover {
     background-color: #bebebe;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ===============================
@@ -143,6 +143,7 @@
         opacity: 0;
         transform: translateY(-20px);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0);
@@ -154,6 +155,7 @@
         opacity: 0;
         transform: translateX(-20px);
     }
+
     100% {
         opacity: 1;
         transform: translateX(0);
@@ -173,6 +175,7 @@
         text-align: center;
     }
 }
+
 /* ---------- DELETE MODAL ---------- */
 
 .delete-modal-overlay {
@@ -191,7 +194,7 @@
     padding: 24px;
     width: 320px;
     border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     text-align: center;
     animation: scaleIn 0.25s ease;
 }
@@ -240,6 +243,7 @@
         transform: scale(0.9);
         opacity: 0;
     }
+
     to {
         transform: scale(1);
         opacity: 1;

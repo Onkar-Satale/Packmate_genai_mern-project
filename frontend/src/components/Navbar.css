@@ -1,7 +1,8 @@
 /* ================= BASE NAVBAR ================= */
 .navbar {
   display: flex;
-  flex-direction: column; /* Mobile first */
+  flex-direction: column;
+  /* Mobile first */
   align-items: center;
   background-color: #f8f8f8;
   border: 1px solid #ccc;
@@ -172,8 +173,9 @@
     align-items: center;
     justify-content: center;
     gap: 65px;
-    flex: 1;               
-    margin-left: 140px;  /* 🔥 SHIFT LINKS SLIGHTLY RIGHT */
+    flex: 1;
+    margin-left: 140px;
+    /* 🔥 SHIFT LINKS SLIGHTLY RIGHT */
     margin-right: 24px;
   }
 
@@ -188,7 +190,8 @@
   }
 
   .nav-link {
-    font-size: 17.5px; /* 🔥 INCREASED TEXT SIZE */
+    font-size: 17.5px;
+    /* 🔥 INCREASED TEXT SIZE */
     font-weight: 100;
   }
 

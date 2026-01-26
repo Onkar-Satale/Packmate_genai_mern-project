@@ -49,7 +49,7 @@ export default function Signup() {
 
             // 🔹 Update AuthContext
             login({
-                token: res.data.token, 
+                token: res.data.token,
                 email: res.data.email,
                 firstName: res.data.firstName,
                 lastName: res.data.lastName

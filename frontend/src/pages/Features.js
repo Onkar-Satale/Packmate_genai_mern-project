@@ -85,10 +85,10 @@ export default function HowItWorks() {
             <div className="text-content">
               <h2 className="section-title">Revolutionize Your Packing with AI</h2>
               <p className="section-description">
-              PackMate's Al ensures you pack smartly by analyzing your travel itinerary. 
-              It considers the weather, destination, and planned activities to
-               create a personalized packing list. This way, you can focus on 
-               enjoying your trip without worrying about missing essentials.
+                PackMate's Al ensures you pack smartly by analyzing your travel itinerary.
+                It considers the weather, destination, and planned activities to
+                create a personalized packing list. This way, you can focus on
+                enjoying your trip without worrying about missing essentials.
               </p>
 
               {/* <ul className="details-list detlistleft">
@@ -96,12 +96,12 @@ export default function HowItWorks() {
               <li>Select your planned activities</li>
               <li>Receive a customized packing list</li>
             </ul> */}
-            <p></p>
-            <div className="details-p1">
-              <p>❄️Weather-based packing suggestions</p>
-              <p>🗺️Locaion-specific essentials</p>
-              <p>🎯Activity-focused recommendations</p>
-            </div>
+              <p></p>
+              <div className="details-p1">
+                <p>❄️Weather-based packing suggestions</p>
+                <p>🗺️Locaion-specific essentials</p>
+                <p>🎯Activity-focused recommendations</p>
+              </div>
 
             </div>
           </div>
@@ -116,9 +116,9 @@ export default function HowItWorks() {
           <div className="details-text">
             <h2 className="section-title">Enhance Your Packing Experience with Interactive Animations</h2>
             <p className="-description">
-            PackMate's Al assistant transforms packing into an engaging experience with interactive animations. 
-            These visuals guide you through the packing process, 
-            ensuring you never miss an essential item. Enjoy a seamless and fun preparation for your travels.
+              PackMate's Al assistant transforms packing into an engaging experience with interactive animations.
+              These visuals guide you through the packing process,
+              ensuring you never miss an essential item. Enjoy a seamless and fun preparation for your travels.
             </p>
             <ul className="details-list">
               <li>Enter your travel destination and dates</li>
@@ -137,9 +137,9 @@ export default function HowItWorks() {
             <div className="text-content">
               <h2 className="section-title">Key Factors for Tailored Packing Suggestions</h2>
               <p className="section-description">
-              PackMate's Al analyzes weather conditions, destination specifics, and planned activities to offer 
-              personalized packing advice. 
-              This ensures you have everything you need, whether you're exploring a city or relaxing on a beach.
+                PackMate's Al analyzes weather conditions, destination specifics, and planned activities to offer
+                personalized packing advice.
+                This ensures you have everything you need, whether you're exploring a city or relaxing on a beach.
               </p>
 
               {/* <ul className="details-list detlistleft">
@@ -147,13 +147,13 @@ export default function HowItWorks() {
               <li>Select your planned activities</li>
               <li>Receive a customized packing list</li>
             </ul> */}
-            <p></p>
-            <div className="details-p1">
-          
-              <p>☁️Weather-based Clothing and Gear recommendation</p>
-              <p>✈️Locaion-specific Packing tips</p>
-              <p>🧩Activity-oriented Pacing lists</p>
-            </div>
+              <p></p>
+              <div className="details-p1">
+
+                <p>☁️Weather-based Clothing and Gear recommendation</p>
+                <p>✈️Locaion-specific Packing tips</p>
+                <p>🧩Activity-oriented Pacing lists</p>
+              </div>
 
             </div>
           </div>

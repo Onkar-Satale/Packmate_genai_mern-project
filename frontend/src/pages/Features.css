@@ -31,7 +31,8 @@ body {
 .intro-content,
 .details-content {
   display: flex;
-  flex-direction: column; /* Mobile default: image top, text below */
+  flex-direction: column;
+  /* Mobile default: image top, text below */
   align-items: center;
   gap: 20px;
 }
@@ -88,7 +89,8 @@ p {
 /* Stats Container */
 .stats-container {
   display: flex;
-  flex-direction: column; /* vertical stacking */
+  flex-direction: column;
+  /* vertical stacking */
   align-items: center;
   gap: 16px;
   margin-top: 16px;
@@ -118,9 +120,11 @@ p {
 
 /* ---------- Desktop / Laptop Layout ---------- */
 @media (min-width: 900px) {
+
   .intro-content,
   .details-content {
-    flex-direction: row; /* side by side */
+    flex-direction: row;
+    /* side by side */
     justify-content: space-between;
     align-items: center;
     gap: 40px;
@@ -128,19 +132,22 @@ p {
 
   .intro-image,
   .details-image {
-    width: 45%; /* take part of the row */
+    width: 45%;
+    /* take part of the row */
     margin-bottom: 0;
   }
 
   .text-content,
   .details-text {
-    width: 50%; /* take the rest of the row */
+    width: 50%;
+    /* take the rest of the row */
     text-align: left;
   }
 }
 
 /* ---------- Tablet / Small Laptop ---------- */
 @media (max-width: 1024px) {
+
   .intro-content,
   .details-content {
     flex-direction: column;

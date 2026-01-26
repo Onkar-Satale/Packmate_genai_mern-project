@@ -31,14 +31,18 @@ body {
 .features,
 .travelScenarios {
   opacity: 0;
-  transform: translateY(30px); /* Start slightly below viewport */
-  transition: opacity 1s ease-out, transform 1s ease-out; /* Smooth fade-in effect */
+  transform: translateY(30px);
+  /* Start slightly below viewport */
+  transition: opacity 1s ease-out, transform 1s ease-out;
+  /* Smooth fade-in effect */
 }
 
 .features.animate,
 .travelScenarios.animate {
-  opacity: 1; /* Fully visible */
-  transform: translateY(0); /* Original position */
+  opacity: 1;
+  /* Fully visible */
+  transform: translateY(0);
+  /* Original position */
 }
 
 /* Features Section */
@@ -89,9 +93,10 @@ body {
   padding: 10px 20px;
   cursor: pointer;
 }
+
 .featureCard button:hover {
-  background-color:  #fff;
-  color:   #00bcd4;
+  background-color: #fff;
+  color: #00bcd4;
   border: 1px solid #00bcd4;
   border-radius: 5px;
   padding: 10px 20px;
@@ -157,6 +162,7 @@ body {
   padding: 10px 20px;
   cursor: pointer;
 }
+
 .scenarioCard button:hover {
   background-color: #fff;
   color: #00bcd4;
@@ -167,14 +173,20 @@ body {
 }
 
 /* Features and Scenarios Card Hover Effects */
-.featureCard, .scenarioCard {
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
-  cursor: pointer; /* Show pointer cursor */
+.featureCard,
+.scenarioCard {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Smooth hover effect */
+  cursor: pointer;
+  /* Show pointer cursor */
 }
 
-.featureCard:hover, .scenarioCard:hover {
-  transform: translateY(-10px); /* Slightly lift the card */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Add a more prominent shadow */
+.featureCard:hover,
+.scenarioCard:hover {
+  transform: translateY(-10px);
+  /* Slightly lift the card */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  /* Add a more prominent shadow */
 }
 
 /* Button Hover */
@@ -228,7 +240,8 @@ body {
     font-size: 0.9em;
   }
 
-  .featureCard, .scenarioCard {
+  .featureCard,
+  .scenarioCard {
     width: 100%;
   }
 }

@@ -365,38 +365,47 @@ footer p {
 
 
 @media (min-width: 1025px) {
+
   /* Intro Section */
   .intro-section {
     flex-direction: row;
-    align-items: center; /* vertically center text with image */
+    align-items: center;
+    /* vertically center text with image */
   }
 
   .intro-section .intro-image {
-    width: 40%; /* slightly bigger so image fills space nicely */
-    margin-right: 32px; /* more gap between image & text */
+    width: 40%;
+    /* slightly bigger so image fills space nicely */
+    margin-right: 32px;
+    /* more gap between image & text */
     margin-bottom: 0;
   }
 
   .intro-section .text-content {
-    padding-top: 0; /* remove big top padding */
+    padding-top: 0;
+    /* remove big top padding */
   }
 
   /* Details Section */
   .details-section {
-    display: flex; /* change grid to flex for desktop */
+    display: flex;
+    /* change grid to flex for desktop */
     flex-direction: row;
     align-items: center;
     gap: 32px;
   }
 
   .details-section img {
-    width: 50%; /* image takes half width */
+    width: 50%;
+    /* image takes half width */
     margin-left: 0;
-    margin-right: 32px; /* gap between image & text */
+    margin-right: 32px;
+    /* gap between image & text */
   }
 
   .details-text {
-    width: 50%; /* text takes half */
+    width: 50%;
+    /* text takes half */
     padding-top: 0;
   }
 }
@@ -422,10 +431,13 @@ footer p {
 .intro-section,
 .details-section {
   display: flex !important;
-  flex-direction: column !important; /* image above text */
-  align-items: center !important;    /* horizontal centering */
+  flex-direction: column !important;
+  /* image above text */
+  align-items: center !important;
+  /* horizontal centering */
   justify-content: center !important;
-  gap: 8px !important;               /* reduced space between image & text */
+  gap: 8px !important;
+  /* reduced space between image & text */
   margin-bottom: 60px !important;
   opacity: 0 !important;
   transform: translateY(50px) !important;
@@ -441,23 +453,28 @@ footer p {
 /* ---------- Images ---------- */
 .intro-section .intro-image,
 .details-section img {
-  width: 45% !important;       /* slightly smaller image for balance */
+  width: 45% !important;
+  /* slightly smaller image for balance */
   max-width: 400px !important;
   height: auto !important;
   border-radius: 8px !important;
   display: block !important;
-  margin: 0 auto !important;   /* center image */
+  margin: 0 auto !important;
+  /* center image */
 }
 
 /* ---------- Text Containers ---------- */
 .intro-section .text-content,
 .details-text {
-  width: 85% !important;          /* spread text more from both sides */
-  max-width: 1000px !important;   /* optional max limit */
+  width: 85% !important;
+  /* spread text more from both sides */
+  max-width: 1000px !important;
+  /* optional max limit */
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
-  align-items: center !important; /* horizontal center */
+  align-items: center !important;
+  /* horizontal center */
   text-align: center !important;
   gap: 8px !important;
   margin: 0 auto !important;
@@ -467,7 +484,8 @@ footer p {
 .stats-container {
   display: flex !important;
   flex-direction: row !important;
-  justify-content: center !important; /* center numbers + button */
+  justify-content: center !important;
+  /* center numbers + button */
   align-items: center !important;
   gap: 16px !important;
   flex-wrap: wrap !important;
@@ -482,9 +500,11 @@ footer p {
 
 /* ---------- Responsive Styles ---------- */
 @media (max-width: 1024px) {
+
   .intro-section .intro-image,
   .details-section img {
-    width: 60% !important;  /* tablet */
+    width: 60% !important;
+    /* tablet */
   }
 
   .intro-section .text-content,
@@ -494,9 +514,11 @@ footer p {
 }
 
 @media (max-width: 768px) {
+
   .intro-section .intro-image,
   .details-section img {
-    width: 80% !important;  /* mobile */
+    width: 80% !important;
+    /* mobile */
   }
 
   .intro-section .text-content,

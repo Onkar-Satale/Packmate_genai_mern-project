@@ -49,8 +49,10 @@ body {
 
 /* Hover Effect for Cards */
 .testimonialCard:hover {
-  transform: scale(1.05); /* Slight scaling */
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+  transform: scale(1.05);
+  /* Slight scaling */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  /* Enhanced shadow on hover */
 }
 
 /* Visible state when in the viewport */
@@ -172,8 +174,10 @@ footer .footerBottom a {
   }
 
   .testimonialCard {
-    width: 90%; /* Take up most of the screen width */
-    margin-bottom: 20px; /* Add margin between cards */
+    width: 90%;
+    /* Take up most of the screen width */
+    margin-bottom: 20px;
+    /* Add margin between cards */
   }
 
   footer .footerContent {
@@ -188,7 +192,8 @@ footer .footerBottom a {
   }
 
   footer .subscribe input {
-    width: 80%; /* Wider input field */
+    width: 80%;
+    /* Wider input field */
   }
 
   footer .footerBottom {
@@ -207,7 +212,8 @@ footer .footerBottom a {
   }
 
   .testimonialCard {
-    width: 45%; /* Two cards per row */
+    width: 45%;
+    /* Two cards per row */
   }
 
   footer .footerContent {
@@ -241,7 +247,8 @@ footer .footerBottom a {
   }
 
   .testimonialCard {
-    width: 300px; /* Maintain the original width */
+    width: 300px;
+    /* Maintain the original width */
   }
 
   footer .footerContent {
@@ -257,6 +264,7 @@ footer .footerBottom a {
   }
 
   footer .subscribe input {
-    width: 60%; /* Default input width */
+    width: 60%;
+    /* Default input width */
   }
 }

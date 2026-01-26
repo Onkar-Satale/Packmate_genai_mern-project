@@ -77,7 +77,7 @@ const Home2 = () => {
                 <div className="featureList">
                     {/* Feature 1 */}
                     <div className="featureItem">
-                    <img src={img3} alt="Personalized Packing" className="featureImage" />
+                        <img src={img3} alt="Personalized Packing" className="featureImage" />
                         <h3 className="featureTitle">Personalized Packing Suggestions</h3>
                         <p className="featureDescription">
                             Our AI analyzes your travel details to provide a customized
@@ -88,7 +88,7 @@ const Home2 = () => {
 
                     {/* Feature 2 */}
                     <div className="featureItem">
-                        
+
                         <img src={img4} alt="Weather-Based" className="featureImage" />
                         <h3 className="featureTitle">Weather-Based Recommendations</h3>
                         <p className="featureDescription">
@@ -101,7 +101,7 @@ const Home2 = () => {
                     {/* Feature 3 */}
                     <div className="featureItem">
                         <img src={img5} alt="Interactive Packing" className="featureImage" />
-                    
+
                         <h3 className="featureTitle">Interactive Packing Experience</h3>
                         <p className="featureDescription">
                             Enjoy a user-friendly interface with animations that make packing

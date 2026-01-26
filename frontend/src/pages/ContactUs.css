@@ -243,12 +243,14 @@ footer p {
   }
 
   .contact-image {
-    max-height: 300px; /* Resize map image for mobile */
+    max-height: 300px;
+    /* Resize map image for mobile */
   }
 }
 
 @media (max-width: 480px) {
   .contact-image {
-    max-height: 200px; /* Smaller screens */
+    max-height: 200px;
+    /* Smaller screens */
   }
 }

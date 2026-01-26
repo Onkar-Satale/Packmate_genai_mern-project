@@ -87,35 +87,43 @@
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
-    cursor: pointer; /* Change cursor to pointer */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Smooth hover effect */
+    cursor: pointer;
+    /* Change cursor to pointer */
 }
 
 .featureItem:hover {
-    transform: translateY(-10px); /* Slight lift on hover */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+    transform: translateY(-10px);
+    /* Slight lift on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    /* Stronger shadow on hover */
 }
 
 .featureImage {
     width: 100%;
     border-radius: 8px;
     margin-bottom: 20px;
-    transition: transform 0.3s ease; /* Image zoom effect */
+    transition: transform 0.3s ease;
+    /* Image zoom effect */
 }
 
 .featureItem:hover .featureImage {
-    transform: scale(1.05); /* Slight zoom on hover */
+    transform: scale(1.05);
+    /* Slight zoom on hover */
 }
 
 .featureTitle {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
-    transition: color 0.3s ease; /* Smooth color transition */
+    transition: color 0.3s ease;
+    /* Smooth color transition */
 }
 
 .featureItem:hover .featureTitle {
-    color: #007bff; /* Change title color on hover */
+    color: #007bff;
+    /* Change title color on hover */
 }
 
 .featureDescription {
@@ -132,12 +140,14 @@
     border: none;
     cursor: pointer;
     text-decoration: none;
-    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth button hover */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    /* Smooth button hover */
 }
 
 .button:hover {
     background-color: #0056b3;
-    transform: scale(1.1); /* Slight zoom on hover */
+    transform: scale(1.1);
+    /* Slight zoom on hover */
 }
 
 /* Responsive Styling */

@@ -123,7 +123,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-      text-decoration: none;
+    text-decoration: none;
 
 }
 
@@ -227,7 +227,8 @@ body {
         gap: 10px;
     }
 
-    .exploreButton, .learnMoreButton {
+    .exploreButton,
+    .learnMoreButton {
         width: 100%;
         padding: 12px;
         font-size: 18px;
@@ -258,7 +259,8 @@ body {
         gap: 10px;
     }
 
-    .exploreButton, .learnMoreButton {
+    .exploreButton,
+    .learnMoreButton {
         width: 100%;
         font-size: 18px;
         padding: 12px;

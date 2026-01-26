@@ -121,9 +121,8 @@ const Home4 = () => {
             <div
               key={index}
               ref={(el) => (sectionsRef.current[index] = el)}
-              className={`testimonialCard ${
-                visibleSections.includes(index) ? 'visible' : ''
-              }`}
+              className={`testimonialCard ${visibleSections.includes(index) ? 'visible' : ''
+                }`}
             >
               <img src={userItem.img} alt={userItem.name} />
               <h3>{userItem.name}</h3>

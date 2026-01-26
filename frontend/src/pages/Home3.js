@@ -79,7 +79,7 @@ const Home3 = () => {
             <div className="content">
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
-            
+
             </div>
           </div>
         ))}
@@ -117,7 +117,7 @@ const Home3 = () => {
               <div className="content">
                 <h3>{scenario.title}</h3>
                 <p>{scenario.description}</p>
-               
+
               </div>
             </div>
           ))}
