@@ -1,0 +1,210 @@
+/* Home2.css */
+
+/* Dark Section */
+.sectionDark {
+    background-color: #000;
+    color: #fff;
+    padding: 50px 5%;
+    text-align: center;
+}
+
+.sectionLight {
+    background-color: #f9f9f9;
+    color: #333;
+    padding: 50px 5%;
+    text-align: center;
+}
+
+.heading {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.subHeading {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+/* Feature List */
+.featureList {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    text-align: left;
+}
+
+.featureItem {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.featureImage {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.featureTitle {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.featureDescription {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* Feature List */
+.featureList {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    text-align: left;
+}
+
+.featureItem {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+    cursor: pointer; /* Change cursor to pointer */
+}
+
+.featureItem:hover {
+    transform: translateY(-10px); /* Slight lift on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+}
+
+.featureImage {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease; /* Image zoom effect */
+}
+
+.featureItem:hover .featureImage {
+    transform: scale(1.05); /* Slight zoom on hover */
+}
+
+.featureTitle {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    transition: color 0.3s ease; /* Smooth color transition */
+}
+
+.featureItem:hover .featureTitle {
+    color: #007bff; /* Change title color on hover */
+}
+
+.featureDescription {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth button hover */
+}
+
+.button:hover {
+    background-color: #0056b3;
+    transform: scale(1.1); /* Slight zoom on hover */
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+    .heading {
+        font-size: 28px;
+    }
+
+    .subHeading {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .featureList {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .featureItem {
+        flex: none;
+        width: 100%;
+    }
+
+    .featureTitle {
+        font-size: 18px;
+    }
+
+    .featureDescription {
+        font-size: 14px;
+    }
+
+    .button {
+        padding: 8px 16px;
+    }
+}
+
+/* For small mobile screens (max-width: 480px) */
+@media (max-width: 480px) {
+    .heading {
+        font-size: 24px;
+    }
+
+    .subHeading {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .featureList {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .featureItem {
+        flex: none;
+        width: 100%;
+        padding: 15px;
+    }
+
+    .featureTitle {
+        font-size: 16px;
+    }
+
+    .featureDescription {
+        font-size: 12px;
+    }
+
+    .button {
+        padding: 6px 12px;
+    }
+}

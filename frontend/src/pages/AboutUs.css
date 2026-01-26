@@ -1,0 +1,254 @@
+/* ---------- General Styles ---------- */
+body {
+  background-color: #ffffff;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+header {
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 12px 0;
+}
+
+header .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* ---------- Navbar Styles ---------- */
+nav {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+nav a {
+  color: #4a4a4a;
+  text-decoration: none;
+  padding: 8px 16px;
+  display: block;
+}
+
+nav a:hover {
+  background-color: #3b82f6;
+  color: white;
+}
+
+nav button {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+}
+
+/* ---------- Main Section ---------- */
+main {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+main section {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+main section h4 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #4a4a4a;
+}
+
+main section h2 {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+main section p {
+  color: #6b7280;
+}
+
+/* ---------- Contact Details ---------- */
+.contact-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.contact-card {
+  text-align: center;
+  flex: 1;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* smooth hover effect */
+}
+
+.contact-card:hover {
+  transform: translateY(-8px); /* lift effect */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.contact-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.contact-card p {
+  color: #6b7280;
+}
+
+.contact-card .icon {
+  font-size: 32px;
+  color: #10b981;
+  margin-bottom: 8px;
+}
+
+/* ---------- Contact Form and Map ---------- */
+.form-map-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+form {
+  background-color: #fff;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+form h3 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+form label {
+  display: block;
+  color: #4a4a4a;
+  margin-bottom: 8px;
+}
+
+form input,
+form textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 16px;
+}
+
+form textarea {
+  resize: none;
+}
+
+form button {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+}
+
+form .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4a4a4a;
+}
+
+/* ---------- Footer ---------- */
+footer {
+  background-color: #f3f4f6;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+footer .footer-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+}
+
+footer h4 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #6b7280;
+}
+
+footer ul li {
+  margin-bottom: 4px;
+}
+
+footer ul li a {
+  text-decoration: none;
+  color: #6b7280;
+}
+
+footer p {
+  color: #9ca3af;
+  font-size: 14px;
+  margin-top: 32px;
+}
+
+/* ---------- Responsive Styles ---------- */
+@media (max-width: 768px) {
+  /* Stack contact cards vertically */
+  .contact-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Stack form and map vertically */
+  .form-map-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Adjust font sizes for smaller screens */
+  header h1 {
+    font-size: 20px;
+  }
+
+  main section h2 {
+    font-size: 24px;
+  }
+
+  main section h4 {
+    font-size: 18px;
+  }
+
+  .contact-card h3 {
+    font-size: 18px;
+  }
+
+  form h3 {
+    font-size: 20px;
+  }
+}

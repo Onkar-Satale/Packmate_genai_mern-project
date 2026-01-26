@@ -1,0 +1,184 @@
+/* ---------- General Styles ---------- */
+body {
+  background-color: #f9fafb;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+/* ---------- Section Layout ---------- */
+.intro-section,
+.details-section {
+  margin: 40px 0;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.intro-section.animate,
+.details-section.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- Inner Content Containers ---------- */
+.intro-content,
+.details-content {
+  display: flex;
+  flex-direction: column; /* Mobile default: image top, text below */
+  align-items: center;
+  gap: 20px;
+}
+
+/* ---------- Images ---------- */
+.intro-image,
+.details-image {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-bottom: 16px;
+}
+
+/* ---------- Text Content ---------- */
+.text-content,
+.details-text {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Section Titles */
+.section-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+/* Section Paragraphs */
+.section-description,
+p {
+  color: #6b7280;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* Lists */
+.details-list {
+  color: #6b7280;
+  padding-left: 16px;
+  margin-bottom: 16px;
+}
+
+.details-list li::before {
+  content: "✅";
+  margin-right: 8px;
+}
+
+/* Stats Container */
+.stats-container {
+  display: flex;
+  flex-direction: column; /* vertical stacking */
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #10b981;
+}
+
+/* Try Now Button */
+.try-now-button {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.try-now-button:hover {
+  background-color: #2563eb;
+}
+
+/* ---------- Desktop / Laptop Layout ---------- */
+@media (min-width: 900px) {
+  .intro-content,
+  .details-content {
+    flex-direction: row; /* side by side */
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .intro-image,
+  .details-image {
+    width: 45%; /* take part of the row */
+    margin-bottom: 0;
+  }
+
+  .text-content,
+  .details-text {
+    width: 50%; /* take the rest of the row */
+    text-align: left;
+  }
+}
+
+/* ---------- Tablet / Small Laptop ---------- */
+@media (max-width: 1024px) {
+  .intro-content,
+  .details-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .intro-image,
+  .details-image {
+    width: 90%;
+    max-width: 400px;
+    margin-bottom: 16px;
+  }
+
+  .text-content,
+  .details-text {
+    width: 100%;
+    padding: 0;
+  }
+
+  .stats-container {
+    flex-direction: column;
+  }
+}
+
+/* ---------- Mobile / Phone ---------- */
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 22px;
+  }
+
+  .section-description,
+  p {
+    font-size: 14px;
+  }
+
+  .try-now-button {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px 0;
+  }
+}

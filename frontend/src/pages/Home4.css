@@ -1,0 +1,262 @@
+/* General Styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
+}
+
+/* Testimonials Section */
+.testimonials {
+  text-align: center;
+  padding: 50px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.testimonials h2 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.testimonials p {
+  font-size: 1.2em;
+  color: #666;
+  margin-bottom: 40px;
+}
+
+.testimonials .testimonialCards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.testimonialCard {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  padding: 20px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s ease-out, transform 1s ease-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+/* Hover Effect for Cards */
+.testimonialCard:hover {
+  transform: scale(1.05); /* Slight scaling */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+/* Visible state when in the viewport */
+.testimonialCard.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.testimonialCard img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-bottom: 20px;
+}
+
+.testimonialCard h3 {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.testimonialCard p {
+  font-size: 1em;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.testimonialCard p.italic {
+  font-size: 1em;
+  color: #666;
+  font-style: italic;
+}
+
+/* Footer Section */
+footer {
+  background-color: #f9f9f9;
+  padding: 30px 20px;
+  border-top: 1px solid #ddd;
+}
+
+footer .footerContent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+footer .footerContent div {
+  flex: 1;
+  text-align: left;
+  padding: 10px;
+}
+
+footer .footerContent h4 {
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+footer .footerContent p {
+  font-size: 1em;
+  color: #666;
+}
+
+footer .subscribe {
+  flex: 2;
+  text-align: left;
+  padding: 10px;
+}
+
+footer .subscribe h4 {
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+footer .subscribe input {
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-right: 10px;
+  width: 60%;
+}
+
+footer .subscribe button {
+  background-color: #00bcd4;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+footer .footerBottom {
+  text-align: center;
+  margin-top: 20px;
+  color: #999;
+  font-size: 0.9em;
+}
+
+footer .footerBottom a {
+  color: #00bcd4;
+  text-decoration: none;
+}
+
+/* Responsive Styling */
+
+/* Small Screens: Mobile Devices */
+@media screen and (max-width: 600px) {
+  .testimonials h2 {
+    font-size: 2em;
+  }
+
+  .testimonials p {
+    font-size: 1em;
+  }
+
+  .testimonialCard {
+    width: 90%; /* Take up most of the screen width */
+    margin-bottom: 20px; /* Add margin between cards */
+  }
+
+  footer .footerContent {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  footer .footerContent div,
+  footer .subscribe {
+    width: 100%;
+    padding: 10px 0;
+  }
+
+  footer .subscribe input {
+    width: 80%; /* Wider input field */
+  }
+
+  footer .footerBottom {
+    font-size: 0.8em;
+  }
+}
+
+/* Medium Screens: Tablets */
+@media screen and (max-width: 768px) {
+  .testimonials h2 {
+    font-size: 2.2em;
+  }
+
+  .testimonials p {
+    font-size: 1.1em;
+  }
+
+  .testimonialCard {
+    width: 45%; /* Two cards per row */
+  }
+
+  footer .footerContent {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  footer .footerContent div,
+  footer .subscribe {
+    width: 100%;
+    padding: 10px 0;
+  }
+
+  footer .subscribe input {
+    width: 70%;
+  }
+
+  footer .footerBottom {
+    font-size: 0.9em;
+  }
+}
+
+/* Large Screens */
+@media screen and (min-width: 769px) {
+  .testimonials h2 {
+    font-size: 2.5em;
+  }
+
+  .testimonials p {
+    font-size: 1.2em;
+  }
+
+  .testimonialCard {
+    width: 300px; /* Maintain the original width */
+  }
+
+  footer .footerContent {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  footer .footerContent div,
+  footer .subscribe {
+    width: auto;
+    padding: 10px;
+  }
+
+  footer .subscribe input {
+    width: 60%; /* Default input width */
+  }
+}

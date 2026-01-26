@@ -1,0 +1,247 @@
+/* ===============================
+   PAGE CONTAINER
+================================ */
+.account-page-container {
+    min-height: 100vh;
+    background: #f9fafb;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.account-page-content {
+    width: 100%;
+    max-width: 900px;
+}
+
+/* ===============================
+   HEADINGS
+================================ */
+.account-page-content h1 {
+    color: #4206ab;
+    text-align: center;
+    margin-bottom: 15px;
+    animation: fadeInDown 0.8s ease;
+}
+
+.account-page-content h2 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    color: #111827;
+}
+
+/* ===============================
+   SEARCH BAR
+================================ */
+.trip-search {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.trip-search input {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.trip-search input:focus {
+    border-color: #2563eb;
+}
+
+/* ===============================
+   TRIP CARDS
+================================ */
+.trip-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Single Trip Card */
+.trip-card {
+    position: relative;
+    background: #eae9e9;
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.trip-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.trip-card h3 {
+    color: #d97706;
+    margin-bottom: 10px;
+    animation: fadeInLeft 0.6s ease;
+}
+
+.trip-card p {
+    margin: 5px 0;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+/* ===============================
+   BUTTONS
+================================ */
+.details-btn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #2563eb;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.details-btn:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+/* Delete Button (Top Right) */
+.delete-trip-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #eae9e9;
+    color: rgb(117, 117, 117);
+    border: none;
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+.delete-trip-btn:hover {
+    background-color: #bebebe;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+/* ===============================
+   ANIMATIONS
+================================ */
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 600px) {
+    .trip-card {
+        padding: 15px;
+    }
+
+    .details-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+/* ---------- DELETE MODAL ---------- */
+
+.delete-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.delete-modal {
+    background: #ffffff;
+    padding: 24px;
+    width: 320px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    text-align: center;
+    animation: scaleIn 0.25s ease;
+}
+
+.delete-modal h3 {
+    margin-bottom: 10px;
+    color: #b91c1c;
+}
+
+.delete-modal p {
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.cancel-btn {
+    background: #e5e7eb;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.confirm-delete-btn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.confirm-delete-btn:hover {
+    background: #b91c1c;
+}
+
+/* animation */
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
