@@ -574,7 +574,7 @@ def api_download_packing_list(trip: TripRequestGenerate):
 @app.post("/save-trip")
 def api_save_trip(trip: TripRequestSave):
     trip_data = trip.dict()
-    MERN_API_URL = "http://localhost:5000/api/trips"
+    MERN_API_URL = os.environ.get("MERN_API_URL", "http://localhost:5000/api/trips")
     try:
         response = requests.post(MERN_API_URL, json=trip_data, timeout=10)
         if response.status_code in (200, 201):
