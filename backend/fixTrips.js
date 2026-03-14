@@ -1,7 +1,7 @@
 const Trip = require("./models/Trip");
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://127.0.0.1:27017/packmate", { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 async function fixTrips() {
   const trips = await Trip.find({});
@@ -15,5 +15,6 @@ async function fixTrips() {
   console.log("All trips fixed ✅");
   process.exit();
 }
+
 
 fixTrips();
