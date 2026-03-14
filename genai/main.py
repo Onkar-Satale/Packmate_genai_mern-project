@@ -30,6 +30,10 @@ if not GROQ_API_KEY:
 # ---------------- FASTAPI APP ----------------
 app = FastAPI(title="Smart Packing Assistant API")
 
+@app.get("/")
+def root():
+    return {"message": "Smart Packing Assistant API is live ✅"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # allow React frontend
@@ -579,3 +583,12 @@ def api_save_trip(trip: TripRequestSave):
             raise HTTPException(status_code=500, detail=response.text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",  # your filename without .py : app instance
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+        reload=True
+    )
