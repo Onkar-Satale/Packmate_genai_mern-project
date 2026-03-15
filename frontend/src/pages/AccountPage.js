@@ -20,7 +20,7 @@ const AccountPage = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await axios.get("http://localhost:5000/api/trips", {
+            const res = await axios.get("https://packmate-backend.onrender.com/api/trips", {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -42,7 +42,7 @@ const AccountPage = () => {
             const token = localStorage.getItem("token");
 
             await axios.delete(
-                `http://localhost:5000/api/trips/${tripToDelete}`,
+                `https://packmate-backend.onrender.com/api/trips/${tripToDelete}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 

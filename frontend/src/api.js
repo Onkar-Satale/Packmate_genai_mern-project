@@ -1,1 +1,1 @@
-export const API_URL = "http://localhost:5000/api"; // backend URL
+export const API_URL = "https://packmate-backend.onrender.com/api"; // backend URL

@@ -17,7 +17,7 @@ const TripDetailsPage = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
-                `http://localhost:5000/api/trips/${id}`,
+                `https://packmate-backend.onrender.com/api/trips/${id}`,
                 { notes: updatedNotes },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -92,7 +92,7 @@ const TripDetailsPage = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
-                `http://localhost:5000/api/trips/${id}`,
+                `https://packmate-backend.onrender.com/api/trips/${id}`,
                 { notes: updatedNotes },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -112,7 +112,7 @@ const TripDetailsPage = () => {
         const fetchTripDetails = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get(`http://localhost:5000/api/trips/${id}`, {
+                const res = await axios.get(`https://packmate-backend.onrender.com/api/trips/${id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setTrip(res.data);
@@ -145,7 +145,7 @@ const TripDetailsPage = () => {
 
         try {
             const res = await axios.put(
-                `http://localhost:5000/api/trips/${id}/upload`, // <-- new upload route
+                `https://packmate-backend.onrender.com/api/trips/${id}/upload`, // <-- new upload route
                 formData,
                 {
                     headers: {
@@ -186,7 +186,7 @@ const TripDetailsPage = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
-                `http://localhost:5000/api/trips/${id}`,
+                `https://packmate-backend.onrender.com/api/trips/${id}`,
                 { photos: remainingPhotos },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -213,7 +213,7 @@ const TripDetailsPage = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
-                `http://localhost:5000/api/trips/${id}`,
+                `https://packmate-backend.onrender.com/api/trips/${id}`,
                 { notes: remainingNotes },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -475,7 +475,7 @@ const TripDetailsPage = () => {
                     {trip.photos && trip.photos.length > 0 ? (
                         trip.photos.map((photo, i) => {
                             // Ensure correct URL for image
-                            const photoURL = photo.startsWith("http") ? photo : `http://localhost:5000${photo}`;
+                            const photoURL = photo.startsWith("http") ? photo : `https://packmate-backend.onrender.com${photo}`;
                             return (
                                 <div key={i} className="photo-wrapper">
                                     {photoEditMode && (
@@ -518,7 +518,7 @@ const TripDetailsPage = () => {
                                 src={
                                     trip.photos[currentPhotoIndex].startsWith("http")
                                         ? trip.photos[currentPhotoIndex]
-                                        : `http://localhost:5000${trip.photos[currentPhotoIndex]}`
+                                        : `https://packmate-backend.onrender.com${trip.photos[currentPhotoIndex]}`
                                 }
                                 alt={`Trip photo ${currentPhotoIndex + 1}`}
                                 className="lightbox-photo"

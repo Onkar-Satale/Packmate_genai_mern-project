@@ -213,7 +213,7 @@ export default function PackingAssistant() {
             }
 
             await axios.post(
-                "http://localhost:5000/api/trips",
+                "https://packmate-backend.onrender.com/api/trips",
                 {
                     destination: trip.destination,
                     startDate: trip.startDate,
