@@ -71,9 +71,8 @@ const TripDetailsPage = () => {
     // Open edit mode for selected note
 
     // Save note (new or edited)
-    const handleSaveNote = async (e) => {
-        if (e) e.preventDefault();
-        
+    const handleSaveNote = async () => {
+        // Remove the 'e' param override for generic saves
         const currentText = noteText;
         if (!currentText.trim()) return;
 
@@ -364,10 +363,13 @@ const TripDetailsPage = () => {
                             />
                             <button 
                                 className="save-note-btn" 
-                                onPointerDown={(e) => {
-                                    // Bypasses iOS keyboard-dismiss bug!
+                                onMouseDown={(e) => {
                                     e.preventDefault();
-                                    handleSaveNote(e);
+                                    handleSaveNote();
+                                }}
+                                onTouchStart={(e) => {
+                                    e.preventDefault();
+                                    handleSaveNote();
                                 }}
                                 onClick={handleSaveNote}
                             >
