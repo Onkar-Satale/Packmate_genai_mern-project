@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./TripDetailsPage.css";
@@ -58,8 +58,9 @@ const TripDetailsPage = () => {
     const closeLightbox = () => setLightboxOpen(false);
     const [showAdd, setShowAdd] = useState(false); // toggle add/edit section
     const [notes, setNotes] = useState([]); // <-- initialize as empty
-
-    const [noteText, setNoteText] = useState(""); // current note text input
+    const noteTextRef = useRef(null); // Fix for Android predictive text swallowing React state
+    
+    // const [noteText, setNoteText] = useState(""); // current note text input
     const [selectedNoteIndex, setSelectedNoteIndex] = useState(null); // currently selected note
     const [isEditMode, setIsEditMode] = useState(false); // ✅ ADD THIS
 
@@ -72,12 +73,14 @@ const TripDetailsPage = () => {
 
     // Save note (new or edited)
     const handleSaveNote = async () => {
-        // Remove the 'e' param override for generic saves
-        const currentText = noteText;
+        if (!noteTextRef.current) return;
+        
+        // Read directly from the DOM to bypass React's delayed composition events on Android
+        const currentText = noteTextRef.current.value;
         if (!currentText.trim()) return;
 
-        // Eagerly clear the text to prevent double-submits from double-tapping
-        setNoteText("");
+        // Eagerly clear the text to prevent double-submits
+        noteTextRef.current.value = "";
         setShowAdd(false);
 
         let updatedNotes = [...notes];
@@ -358,8 +361,8 @@ const TripDetailsPage = () => {
                         <div className="add-note-section">
                             <textarea
                                 placeholder="Write your note here..."
-                                value={noteText}
-                                onChange={(e) => setNoteText(e.target.value)}
+                                ref={noteTextRef}
+                                defaultValue={""}
                             />
                             <button 
                                 className="save-note-btn" 
