@@ -71,20 +71,27 @@ const TripDetailsPage = () => {
     // Open edit mode for selected note
 
     // Save note (new or edited)
-    const handleSaveNote = async () => {
-        if (!noteText.trim()) return;
+    const handleSaveNote = async (e) => {
+        if (e) e.preventDefault();
+        
+        const currentText = noteText;
+        if (!currentText.trim()) return;
+
+        // Eagerly clear the text to prevent double-submits from double-tapping
+        setNoteText("");
+        setShowAdd(false);
 
         let updatedNotes = [...notes];
 
         if (isEditMode && selectedNoteIndex !== null) {
             updatedNotes[selectedNoteIndex] = {
                 ...updatedNotes[selectedNoteIndex],
-                text: noteText,
+                text: currentText,
                 date: new Date().toLocaleString()
             };
         } else {
             updatedNotes.push({
-                text: noteText,
+                text: currentText,
                 date: new Date().toLocaleString()
             });
         }
@@ -98,12 +105,11 @@ const TripDetailsPage = () => {
             );
 
             setNotes(updatedNotes);
-            setNoteText("");
-            setShowAdd(false);
             setIsEditMode(false);
             setSelectedNoteIndex(null);
         } catch (err) {
             console.error("Failed to save note", err);
+            // Optionally, revert UI state on failure
         }
     };
 
@@ -356,7 +362,15 @@ const TripDetailsPage = () => {
                                 value={noteText}
                                 onChange={(e) => setNoteText(e.target.value)}
                             />
-                            <button className="save-note-btn" onClick={handleSaveNote}>
+                            <button 
+                                className="save-note-btn" 
+                                onPointerDown={(e) => {
+                                    // Bypasses iOS keyboard-dismiss bug!
+                                    e.preventDefault();
+                                    handleSaveNote(e);
+                                }}
+                                onClick={handleSaveNote}
+                            >
                                 Save Note
                             </button>
                         </div>
