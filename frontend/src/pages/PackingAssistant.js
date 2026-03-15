@@ -149,7 +149,7 @@ export default function PackingAssistant() {
 
         try {
             const res = await axios.post(
-                "http://127.0.0.1:8000/generate-packing-list",
+                "https://packmate69.onrender.com/generate-packing-list",
                 payload
             );
 
@@ -297,7 +297,7 @@ export default function PackingAssistant() {
 
         try {
             const res = await axios.post(
-                "http://127.0.0.1:8000/download-packing-list",
+                "https://packmate69.onrender.com/download-packing-list",
                 payload,
                 { responseType: "blob" }
             );
