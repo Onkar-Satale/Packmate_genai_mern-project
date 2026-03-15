@@ -277,7 +277,7 @@ export default function PackingAssistant() {
         // Map your React state to backend expected fields
         const payload = {
             location: trip.destination || "",
-            totalDays: trip.totalDays || 1,
+            days: trip.totalDays || 1,
             trip_type: trip.tripType || "Solo",
             purpose: trip.purpose || "Leisure",
             activities: trip.activities || "None",
