@@ -2,7 +2,6 @@
 
 PackMate is a full-stack, AI-driven web application designed to help travelers effortlessly plan trips, manage itineraries, and automatically generate highly optimized packing lists using Generative AI based on their destination's live weather, trip duration, and planned activities.
 
-![PackMate Preview](https://via.placeholder.com/800x400.png?text=PackMate+Dashboard+Preview) *(Replace with actual screenshot)*
 
 ## ✨ Features
 
