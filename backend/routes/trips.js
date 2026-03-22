@@ -3,13 +3,14 @@ const router = express.Router();
 const Trip = require("../models/Trip");
 const auth = require("../middleware/auth");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("cloudinary").v2;
 
-const uploadDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 
 // ✅ SAVE TRIP
@@ -138,14 +139,12 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
-// Set storage for uploaded files
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../uploads")); // save to backend/uploads
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+// Set storage for Cloudinary uploaded files
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "packmate_trips",
+    allowed_formats: ["jpg", "png", "jpeg", "webp", "gif"],
   },
 });
 
@@ -155,7 +154,7 @@ const upload = multer({ storage: storage });
 router.put("/:id/upload", auth, upload.array("photos"), async (req, res) => {
   try {
     const uploadedFiles = req.files.map(
-      (file) => `/uploads/${file.filename}`
+      (file) => file.path
     );
 
     const trip = await Trip.findOneAndUpdate(
