@@ -381,18 +381,18 @@ const TripDetailsPage = () => {
                         <h2 style={{ margin: 0 }}>Packing List</h2>
                         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             {!isTickingMode ? (
-                                <button className="packing-action-btn packing-start-btn" onClick={handleStartTicking}>
+                                <button className="edit-photos-btn" onClick={handleStartTicking} style={{ backgroundColor: "#3a009e", color: "white", borderColor: "#3a009e" }}>
                                     ✅ Start Ticking
                                 </button>
                             ) : (
                                 <>
-                                    <button className="packing-action-btn packing-refresh-btn" onClick={handleResetTicking}>
+                                    <button className="edit-photos-btn" onClick={handleResetTicking} style={{ borderColor: "#f97316", color: "#f97316" }}>
                                         🔄 Refresh
                                     </button>
-                                    <button className="packing-action-btn packing-cancel-btn" onClick={handleCancelTicking}>
+                                    <button className="edit-photos-btn" onClick={handleCancelTicking}>
                                         ❌ Cancel
                                     </button>
-                                    <button className="packing-action-btn packing-save-btn" onClick={handleSaveTicking}>
+                                    <button className="edit-photos-btn" onClick={handleSaveTicking} style={{ backgroundColor: "#10b981", color: "white", borderColor: "#10b981" }}>
                                         💾 Save
                                     </button>
                                 </>
