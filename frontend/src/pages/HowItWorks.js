@@ -88,7 +88,7 @@ export default function HowItWorks() {
         try {
           const apiKey = "baf9968e5b5b41e28025d2585658b52d";
           const response = await fetch(
-            `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`
+            `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=${apiKey}`
           );
           const data = await response.json();
           if (data?.results?.length > 0) setLocationName(data.results[0].formatted);

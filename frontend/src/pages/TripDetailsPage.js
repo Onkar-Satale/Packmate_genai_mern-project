@@ -469,14 +469,7 @@ const TripDetailsPage = () => {
                             />
                             <button 
                                 className="save-note-btn" 
-                                onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    handleSaveNote();
-                                }}
-                                onTouchStart={(e) => {
-                                    e.preventDefault();
-                                    handleSaveNote();
-                                }}
+                                onPointerDown={(e) => e.preventDefault()}
                                 onClick={handleSaveNote}
                             >
                                 Save Note
