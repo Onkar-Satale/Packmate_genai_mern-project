@@ -710,3 +710,30 @@
     opacity: 1;
   }
 }
+/* Packing List Action Buttons */
+.packing-action-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.packing-start-btn { background-color: #3a009e; }
+.packing-start-btn:hover { background-color: #2a0074; transform: translateY(-2px); }
+
+.packing-refresh-btn { background-color: #f97316; }
+.packing-refresh-btn:hover { background-color: #ea580c; transform: translateY(-2px); }
+
+.packing-cancel-btn { background-color: #6b7280; }
+.packing-cancel-btn:hover { background-color: #4b5563; transform: translateY(-2px); }
+
+.packing-save-btn { background-color: #10b981; }
+.packing-save-btn:hover { background-color: #059669; transform: translateY(-2px); }
+
