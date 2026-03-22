@@ -17,6 +17,13 @@ cloudinary.config({
 router.post("/", auth, async (req, res) => {
   try {
     const body = req.body;
+    
+    if (!body.destination && !body.location) {
+        return res.status(400).json({ error: "Destination is required to save a trip." });
+    }
+    if (!body.startDate || !body.endDate) {
+        return res.status(400).json({ error: "Start date and end date are required." });
+    }
 
     const tripData = {
       userId: req.userId,
@@ -67,7 +74,7 @@ router.post("/", auth, async (req, res) => {
 
   } catch (err) {
     console.error("SAVE TRIP ERROR 👉", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal Server Error while saving trip. " + err.message });
   }
 });
 

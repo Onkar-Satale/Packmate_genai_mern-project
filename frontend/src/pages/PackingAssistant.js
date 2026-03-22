@@ -38,6 +38,7 @@ export default function PackingAssistant() {
         });
 
     const [packingList, setPackingList] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     // 🔥 RESTORE DATA ON PAGE RELOAD
     useEffect(() => {
@@ -128,6 +129,13 @@ export default function PackingAssistant() {
             return; // ⛔ stop here
         }
 
+        if (!trip.destination) {
+            alert("⚠️ Please enter a destination before generating your packing list.");
+            return;
+        }
+
+        setIsLoading(true);
+
         const payload = {
             location: trip.destination || "",
             days: trip.totalDays || 1,
@@ -160,6 +168,8 @@ export default function PackingAssistant() {
 
         } catch (err) {
             console.error("Generation failed:", err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -685,7 +695,13 @@ export default function PackingAssistant() {
                 </div>
             )}
             <div className="actions">
-                <button onClick={generatePackingList}>🚀 Generate Packing List</button>
+                <button 
+                  onClick={generatePackingList} 
+                  disabled={isLoading} 
+                  style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                >
+                    {isLoading ? "⏳ Generating..." : "🚀 Generate Packing List"}
+                </button>
                 <button onClick={downloadDocx}>📥 Download DOCX</button>
                 <button onClick={saveTrip}>💾 Save Trip</button>
             </div>

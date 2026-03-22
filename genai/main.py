@@ -5,6 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from io import BytesIO
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi import Request
 from docx import Document
 import re
 import requests
@@ -29,6 +33,10 @@ if not GROQ_API_KEY:
 
 # ---------------- FASTAPI APP ----------------
 app = FastAPI(title="Smart Packing Assistant API")
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.get("/")
 def root():
@@ -553,7 +561,8 @@ Include items based on temperature and travelers' medical info.
 
 # ---------------- ENDPOINTS ----------------
 @app.post("/generate-packing-list")
-def api_generate_packing_list(trip: TripRequestGenerate):
+@limiter.limit("5/minute")
+def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
     data = trip.dict()
     packing_list = generate_packing_list(data)
     summary = f"Location: {data['location']}\nDuration: {data['days']} days\nTrip Type: {data['trip_type']}"

@@ -9,6 +9,7 @@ const TripDetailsPage = () => {
     const [trip, setTrip] = useState(null);
     const [selectedPhotos, setSelectedPhotos] = useState([]);
     const [deleteModal, setDeleteModal] = useState({ show: false, noteIdx: null });
+    const [isUploading, setIsUploading] = useState(false);
 
 
     const handleDeleteNote = async (idx) => {
@@ -144,6 +145,7 @@ const TripDetailsPage = () => {
     const handleAddPhotos = async (e) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
+        setIsUploading(true);
 
         const token = localStorage.getItem("token");
         const formData = new FormData();
@@ -158,7 +160,7 @@ const TripDetailsPage = () => {
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
-                        "Content-Type": "multipart/form-data",
+                        "Content-Type": "multipart/form-type",
                     },
                 }
             );
@@ -166,6 +168,8 @@ const TripDetailsPage = () => {
             setTrip({ ...trip, photos: res.data.photos });
         } catch (err) {
             console.error("Failed to upload photos", err);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -237,11 +241,30 @@ const TripDetailsPage = () => {
         setSelectedPhotos(trip.photos.map((_, index) => index));
     };
 
+    // Toggle packing list item completion
+    const handleTogglePackingItem = async (sectionIdx, itemIdx) => {
+        const updatedTrip = { ...trip };
+        const items = updatedTrip.packingList[sectionIdx].items;
+        
+        if (typeof items[itemIdx] === "string") {
+            items[itemIdx] = { name: items[itemIdx], completed: true };
+        } else {
+            items[itemIdx].completed = !items[itemIdx].completed;
+        }
 
+        setTrip(updatedTrip);
 
-
-
-    return (
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(
+                `https://packmate-backend.onrender.com/api/trips/${id}`,
+                { packingList: updatedTrip.packingList },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        } catch (err) {
+            console.error("Failed to update packing list", err);
+        }
+    };    return (
         <div className="trip-details-page">
             <h1>
                 Trip Details of 🌍
@@ -337,9 +360,22 @@ const TripDetailsPage = () => {
                                 <h3>{section.category}</h3>
 
                                 <ul>
-                                    {section.items.map((item, i) => (
-                                        <li key={i}>{item.name}</li>
-                                    ))}
+                                    {section.items.map((item, i) => {
+                                        const isCompleted = typeof item === "string" ? false : item.completed;
+                                        const itemName = typeof item === "string" ? item : item.name;
+                                        return (
+                                            <li key={i} style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "5px" }}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={isCompleted} 
+                                                    onChange={() => handleTogglePackingItem(idx, i)} 
+                                                />
+                                                <span style={{ textDecoration: isCompleted ? "line-through" : "none", color: isCompleted ? "#888" : "#333" }}>
+                                                    {itemName}
+                                                </span>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             </div>
                         ))
@@ -473,12 +509,13 @@ const TripDetailsPage = () => {
 
 
                 {/* Add Photo Button */}
-                <label className="add-photo-btn">
-                    + Add Photos
+                <label className="add-photo-btn" style={{ opacity: isUploading ? 0.6 : 1, pointerEvents: isUploading ? "none" : "auto" }}>
+                    {isUploading ? "Uploading..." : "+ Add Photos"}
                     <input
                         type="file"
                         multiple
                         accept="image/*"
+                        disabled={isUploading}
                         hidden
                         onChange={handleAddPhotos}
                     />
