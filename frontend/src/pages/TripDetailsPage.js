@@ -10,6 +10,8 @@ const TripDetailsPage = () => {
     const [selectedPhotos, setSelectedPhotos] = useState([]);
     const [deleteModal, setDeleteModal] = useState({ show: false, noteIdx: null });
     const [isUploading, setIsUploading] = useState(false);
+    const [isTickingMode, setIsTickingMode] = useState(false);
+    const [draftPackingList, setDraftPackingList] = useState([]);
 
 
     const handleDeleteNote = async (idx) => {
@@ -241,29 +243,52 @@ const TripDetailsPage = () => {
         setSelectedPhotos(trip.photos.map((_, index) => index));
     };
 
-    // Toggle packing list item completion
-    const handleTogglePackingItem = async (sectionIdx, itemIdx) => {
-        const updatedTrip = { ...trip };
-        const items = updatedTrip.packingList[sectionIdx].items;
-        
-        if (typeof items[itemIdx] === "string") {
-            items[itemIdx] = { name: items[itemIdx], completed: true };
-        } else {
-            items[itemIdx].completed = !items[itemIdx].completed;
-        }
+    const handleStartTicking = () => {
+        setDraftPackingList(JSON.parse(JSON.stringify(trip.packingList)));
+        setIsTickingMode(true);
+    };
 
-        setTrip(updatedTrip);
+    const handleCancelTicking = () => {
+        setIsTickingMode(false);
+        setDraftPackingList([]);
+    };
 
+    const handleResetTicking = () => {
+        const updatedDraft = draftPackingList.map(section => ({
+            ...section,
+            items: section.items.map(item => {
+                if (typeof item === "string") return { name: item, completed: false };
+                return { ...item, completed: false };
+            })
+        }));
+        setDraftPackingList(updatedDraft);
+    };
+
+    const handleSaveTicking = async () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
                 `https://packmate-backend.onrender.com/api/trips/${id}`,
-                { packingList: updatedTrip.packingList },
+                { packingList: draftPackingList },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            setTrip({ ...trip, packingList: draftPackingList });
+            setIsTickingMode(false);
         } catch (err) {
-            console.error("Failed to update packing list", err);
+            console.error("Failed to save packing list", err);
         }
+    };
+
+    const handleToggleDraftItem = (sectionIdx, itemIdx) => {
+        const updatedDraft = [...draftPackingList];
+        const items = [...updatedDraft[sectionIdx].items];
+        if (typeof items[itemIdx] === "string") {
+            items[itemIdx] = { name: items[itemIdx], completed: true };
+        } else {
+            items[itemIdx] = { ...items[itemIdx], completed: !items[itemIdx].completed };
+        }
+        updatedDraft[sectionIdx] = { ...updatedDraft[sectionIdx], items };
+        setDraftPackingList(updatedDraft);
     };    return (
         <div className="trip-details-page">
             <h1>
@@ -352,10 +377,31 @@ const TripDetailsPage = () => {
 
                 {/* Packing List */}
                 <div className="card packing-list-card">
-                    <h2>Packing List</h2>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px", flexWrap: "wrap", gap: "10px" }}>
+                        <h2 style={{ margin: 0 }}>Packing List</h2>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            {!isTickingMode ? (
+                                <button className="edit-photos-btn" onClick={handleStartTicking} style={{ backgroundColor: "#3a009e", color: "white", borderColor: "#3a009e" }}>
+                                    ✅ Start Ticking
+                                </button>
+                            ) : (
+                                <>
+                                    <button className="edit-photos-btn" onClick={handleResetTicking} style={{ borderColor: "#f97316", color: "#f97316" }}>
+                                        🔄 Refresh
+                                    </button>
+                                    <button className="edit-photos-btn" onClick={handleCancelTicking}>
+                                        ❌ Cancel
+                                    </button>
+                                    <button className="edit-photos-btn" onClick={handleSaveTicking} style={{ backgroundColor: "#10b981", color: "white", borderColor: "#10b981" }}>
+                                        💾 Save
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
 
                     {trip.packingList && trip.packingList.length > 0 ? (
-                        trip.packingList.map((section, idx) => (
+                        (isTickingMode ? draftPackingList : trip.packingList).map((section, idx) => (
                             <div key={section._id || idx} className="packing-section">
                                 <h3>{section.category}</h3>
 
@@ -374,12 +420,14 @@ const TripDetailsPage = () => {
                                                 textAlign: "left",
                                                 width: "100%"
                                             }}>
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={isCompleted} 
-                                                    onChange={() => handleTogglePackingItem(idx, i)} 
-                                                    style={{ margin: 0, flexShrink: 0, cursor: "pointer", width: "18px", height: "18px" }}
-                                                />
+                                                {isTickingMode && (
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={isCompleted} 
+                                                        onChange={() => handleToggleDraftItem(idx, i)} 
+                                                        style={{ margin: 0, flexShrink: 0, cursor: "pointer", width: "18px", height: "18px" }}
+                                                    />
+                                                )}
                                                 <span style={{ 
                                                     textDecoration: isCompleted ? "line-through" : "none", 
                                                     color: isCompleted ? "#888" : "#333",
