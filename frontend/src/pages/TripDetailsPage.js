@@ -362,15 +362,34 @@ const TripDetailsPage = () => {
                                 <ul>
                                     {section.items.map((item, i) => {
                                         const isCompleted = typeof item === "string" ? false : item.completed;
-                                        const itemName = typeof item === "string" ? item : item.name;
+                                        // Remove any stray newlines from generated item text to prevent wrapping
+                                        const itemName = typeof item === "string" ? item.replace(/\n/g, ' ') : item.name.replace(/\n/g, ' ');
                                         return (
-                                            <li key={i} style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "5px" }}>
+                                            <li key={i} style={{ 
+                                                display: "flex", 
+                                                justifyContent: "flex-start", 
+                                                alignItems: "center", 
+                                                gap: "10px", 
+                                                marginBottom: "8px",
+                                                textAlign: "left",
+                                                width: "100%"
+                                            }}>
                                                 <input 
                                                     type="checkbox" 
                                                     checked={isCompleted} 
                                                     onChange={() => handleTogglePackingItem(idx, i)} 
+                                                    style={{ margin: 0, flexShrink: 0, cursor: "pointer", width: "18px", height: "18px" }}
                                                 />
-                                                <span style={{ textDecoration: isCompleted ? "line-through" : "none", color: isCompleted ? "#888" : "#333" }}>
+                                                <span style={{ 
+                                                    textDecoration: isCompleted ? "line-through" : "none", 
+                                                    color: isCompleted ? "#888" : "#333",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    whiteSpace: "nowrap",
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    textAlign: "left",
+                                                }}>
                                                     {itemName}
                                                 </span>
                                             </li>
