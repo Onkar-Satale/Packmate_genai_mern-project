@@ -62,7 +62,7 @@ const TripDetailsPage = () => {
     const [showAdd, setShowAdd] = useState(false); // toggle add/edit section
     const [notes, setNotes] = useState([]); // <-- initialize as empty
     const noteTextRef = useRef(null); // Fix for Android predictive text swallowing React state
-
+    
     // const [noteText, setNoteText] = useState(""); // current note text input
     const [selectedNoteIndex, setSelectedNoteIndex] = useState(null); // currently selected note
     const [isEditMode, setIsEditMode] = useState(false); // ✅ ADD THIS
@@ -77,7 +77,7 @@ const TripDetailsPage = () => {
     // Save note (new or edited)
     const handleSaveNote = async () => {
         if (!noteTextRef.current) return;
-
+        
         // Read directly from the DOM to bypass React's delayed composition events on Android
         const currentText = noteTextRef.current.value;
         if (!currentText.trim()) return;
@@ -289,7 +289,7 @@ const TripDetailsPage = () => {
         }
         updatedDraft[sectionIdx] = { ...updatedDraft[sectionIdx], items };
         setDraftPackingList(updatedDraft);
-    }; return (
+    };    return (
         <div className="trip-details-page">
             <h1>
                 Trip Details of 🌍
@@ -411,25 +411,25 @@ const TripDetailsPage = () => {
                                         // Remove any stray newlines from generated item text to prevent wrapping
                                         const itemName = typeof item === "string" ? item.replace(/\n/g, ' ') : item.name.replace(/\n/g, ' ');
                                         return (
-                                            <li key={i} style={{
-                                                display: "flex",
-                                                justifyContent: "flex-start",
-                                                alignItems: "center",
-                                                gap: "10px",
+                                            <li key={i} style={{ 
+                                                display: "flex", 
+                                                justifyContent: "flex-start", 
+                                                alignItems: "center", 
+                                                gap: "10px", 
                                                 marginBottom: "8px",
                                                 textAlign: "left",
                                                 width: "100%"
                                             }}>
                                                 {isTickingMode && (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isCompleted}
-                                                        onChange={() => handleToggleDraftItem(idx, i)}
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={isCompleted} 
+                                                        onChange={() => handleToggleDraftItem(idx, i)} 
                                                         style={{ margin: 0, flexShrink: 0, cursor: "pointer", width: "18px", height: "18px" }}
                                                     />
                                                 )}
-                                                <span style={{
-                                                    textDecoration: isCompleted ? "line-through" : "none",
+                                                <span style={{ 
+                                                    textDecoration: isCompleted ? "line-through" : "none", 
                                                     color: isCompleted ? "#888" : "#333",
                                                     display: "flex",
                                                     alignItems: "center",
@@ -467,8 +467,8 @@ const TripDetailsPage = () => {
                                 ref={noteTextRef}
                                 defaultValue={""}
                             />
-                            <button
-                                className="save-note-btn"
+                            <button 
+                                className="save-note-btn" 
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     handleSaveNote();
