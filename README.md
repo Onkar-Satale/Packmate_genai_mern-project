@@ -35,7 +35,7 @@ AI interaction (Groq - Llama 3)
 Packing list generation
 DOCX export
 🔄 System Design Diagram
-
+![System Design](./frontend/src/assets/system-design.png)
 🔁 Data Flow (Key Feature: AI Packing List)
 User enters trip details
 Frontend sends request to FastAPI
