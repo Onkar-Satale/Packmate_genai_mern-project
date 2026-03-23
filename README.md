@@ -61,38 +61,36 @@ PackMate follows a **microservices-inspired architecture**:
 
 ## 🖼️ System Design
 
-
-<img width="1536" height="1024" alt="System_Design" src="https://github.com/user-attachments/assets/b5793c78-68bf-4964-a52e-c8654ce938d6" />
+<img src="assets/System_Design.png" alt="System Design" width="800" />
+*High-level architecture of PackMate showing frontend, backend, and AI microservice integration.*
 
 ---
 
 ## 📸 PackMate Screenshots
 
 ### 🔑 Login Page
-<img src="assets/Login.png" width="600" />
+<img src="assets/Login.png" width="800" />
 *Secure login using JWT and password hashing.*
 
 ### 🏠 Landing Page
-<img src="assets/LandingPage.png" width="600" />
+<img src="assets/LandingPage.png" width="800" />
 *Main landing page with light/dark mode toggle.*
 
 ### 💡 How It Works
-<img src="assets/HowItWorks.png" width="600" />
+<img src="assets/HowItWorks.png" width="800" />
 *Illustrates the AI packing list workflow.*
 
 ### 📋 Generating Packing List
-<img src="assets/Generating_PackingList.png" width="600" />
+<img src="assets/Generating_PackingList.png" width="800" />
 *AI generates a structured packing list based on trip details.*
 
 ### 👤 Account Page
-<img src="assets/AccountPage.png" width="600" />
+<img src="assets/AccountPage.png" width="800" />
 *User account page showing profile and settings.*
 
 ### 📞 Contact Page
-<img src="assets/Contact.png" width="600" />
+<img src="assets/Contact.png" width="800" />
 *Contact form for connecting with users.*
-
----
 
 ## 🔄 Data Flow (AI Packing List)
 
