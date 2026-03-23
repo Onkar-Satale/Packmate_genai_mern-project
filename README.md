@@ -92,6 +92,8 @@ PackMate follows a **microservices-inspired architecture**:
 <img src="assets/Contact.png" width="700" />
 *Contact form for connecting with users.*
 
+---
+
 ## 🔄 Data Flow (AI Packing List)
 
 1. User enters trip details  
