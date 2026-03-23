@@ -150,14 +150,21 @@ PackMate follows a **microservices-inspired architecture**:
 - FastAPI  
 - Groq (Llama 3)  
 - OpenCage API  
-- python-docx  
-
-### Deployment
-- Vercel  
-- Render  
-
+- python-docx
+  
 ---
 
+### 🚀 Deployment
+
+- **Frontend** → Vercel  
+- **Backend API (Node.js / Express)** → Render  
+- **GenAI Microservice (FastAPI / Python)** → Render  
+- **Database (MongoDB Atlas)** → Cloud (Managed Database)  
+- **Image Storage** → Cloudinary
+  
+  ⚠️ Note: Render free tier services may take ~30 seconds to wake up after inactivity.
+
+---
 ## 🛠️ Local Setup
 
 ### 🔹 Backend
