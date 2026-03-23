@@ -13,6 +13,7 @@ const AccountPage = () => {
     // ✅ delete modal state (ADDED)
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [tripToDelete, setTripToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // ---------------- FETCH TRIPS ----------------
     const fetchTrips = async () => {
@@ -38,6 +39,8 @@ const AccountPage = () => {
     const confirmDeleteTrip = async () => {
         if (!tripToDelete) return;
 
+        setIsDeleting(true);
+
         try {
             const token = localStorage.getItem("token");
 
@@ -53,6 +56,8 @@ const AccountPage = () => {
             setTripToDelete(null);
         } catch (err) {
             console.error("Failed to delete trip", err);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -164,8 +169,9 @@ const AccountPage = () => {
                             <button
                                 className="confirm-delete-btn"
                                 onClick={confirmDeleteTrip}
+                                disabled={isDeleting}
                             >
-                                Delete
+                                {isDeleting ? 'Deleting...' : 'Delete'}
                             </button>
                         </div>
                     </div>

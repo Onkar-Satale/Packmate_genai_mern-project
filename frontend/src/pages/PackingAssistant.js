@@ -39,6 +39,8 @@ export default function PackingAssistant() {
 
     const [packingList, setPackingList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const navigate = useNavigate();
     // 🔥 RESTORE DATA ON PAGE RELOAD
     useEffect(() => {
@@ -129,12 +131,14 @@ export default function PackingAssistant() {
             return; // ⛔ stop here
         }
 
-        if (!trip.destination) {
-            alert("⚠️ Please enter a destination before generating your packing list.");
+        setFormError(""); // Reset error on new action
+        if (!trip.destination || !trip.startDate || !trip.endDate) {
+            setFormError("⚠️ Please enter destination, start date, and end date before generating your packing list.");
             return;
         }
 
         setIsLoading(true);
+        setFormError("⏳ Please wait, AI is generating your list... (This can take up to 50 seconds on first run)");
 
         const payload = {
             location: trip.destination || "",
@@ -168,8 +172,10 @@ export default function PackingAssistant() {
 
         } catch (err) {
             console.error("Generation failed:", err);
+            setFormError("❌ Failed to generate packing list. Please try again.");
         } finally {
             setIsLoading(false);
+            setFormError(""); // Clear the loading message if successful
         }
     };
 
@@ -202,7 +208,6 @@ export default function PackingAssistant() {
 
     const saveTrip = async () => {
         setFormError(""); // reset error
-
         // ✅ BASIC VALIDATION
         if (!trip.destination || !trip.startDate || !trip.endDate || trip.totalDays <= 0) {
             setFormError("⚠️ Please enter Trip Basics before saving the trip.");
@@ -215,6 +220,7 @@ export default function PackingAssistant() {
         }
 
         try {
+            setIsSaving(true);
             const token = localStorage.getItem("token");
 
             if (!token) {
@@ -275,6 +281,8 @@ export default function PackingAssistant() {
         } catch (err) {
             console.error("Save trip failed:", err.response?.data || err.message);
             setFormError("❌ Failed to save trip. Try again.");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -284,6 +292,12 @@ export default function PackingAssistant() {
 
 
     const downloadDocx = async () => {
+        setFormError(""); // reset error
+        if (packingList.length === 0) {
+            setFormError("⚠️ Generate list first to download it.");
+            return;
+        }
+
         // Map your React state to backend expected fields
         const payload = {
             location: trip.destination || "",
@@ -306,6 +320,7 @@ export default function PackingAssistant() {
         };
 
         try {
+            setIsDownloading(true);
             const res = await axios.post(
                 "https://packmate69.onrender.com/download-packing-list",
                 payload,
@@ -319,6 +334,9 @@ export default function PackingAssistant() {
             a.click();
         } catch (err) {
             console.error("Download failed:", err);
+            setFormError("❌ Failed to download DOCX. Please try again.");
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -690,7 +708,7 @@ export default function PackingAssistant() {
 
             {/* ACTIONS */}
             {formError && (
-                <div className="form-error-message">
+                <div className={formError.includes("✅") || formError.includes("⏳") ? "form-success-message" : "form-error-message"}>
                     {formError}
                 </div>
             )}
@@ -702,8 +720,12 @@ export default function PackingAssistant() {
                 >
                     {isLoading ? "⏳ Generating..." : "🚀 Generate Packing List"}
                 </button>
-                <button onClick={downloadDocx}>📥 Download DOCX</button>
-                <button onClick={saveTrip}>💾 Save Trip</button>
+                <button onClick={downloadDocx} disabled={isDownloading} style={{ opacity: isDownloading ? 0.6 : 1, cursor: isDownloading ? "not-allowed" : "pointer" }}>
+                    {isDownloading ? "📥 Downloading..." : "📥 Download DOCX"}
+                </button>
+                <button onClick={saveTrip} disabled={isSaving} style={{ opacity: isSaving ? 0.6 : 1, cursor: isSaving ? "not-allowed" : "pointer" }}>
+                    {isSaving ? "💾 Saving..." : "💾 Save Trip"}
+                </button>
             </div>
 
             {packingList.length > 0 && (

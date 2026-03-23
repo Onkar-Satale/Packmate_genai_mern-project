@@ -11,6 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useContext(AuthContext);
 
   const handleLogin = async (e) => {
@@ -20,6 +21,8 @@ export default function Login() {
       toast.error("Please fill both fields");
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const res = await axios.post(`${API_URL}/login`, { email, password });
@@ -52,6 +55,8 @@ export default function Login() {
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,7 +82,9 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button type="submit" className="login-btn">Login</button>
+          <button type="submit" className="login-btn" disabled={isLoading}>
+            {isLoading ? 'Logging you in...' : 'Login'}
+          </button>
         </form>
 
         <footer className="footer-login">

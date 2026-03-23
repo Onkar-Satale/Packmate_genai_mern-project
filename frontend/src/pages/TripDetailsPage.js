@@ -12,6 +12,7 @@ const TripDetailsPage = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [isTickingMode, setIsTickingMode] = useState(false);
     const [draftPackingList, setDraftPackingList] = useState([]);
+    const [isSavingPackingList, setIsSavingPackingList] = useState(false);
 
 
     const handleDeleteNote = async (idx) => {
@@ -266,6 +267,7 @@ const TripDetailsPage = () => {
 
     const handleSaveTicking = async () => {
         try {
+            setIsSavingPackingList(true);
             const token = localStorage.getItem("token");
             await axios.put(
                 `https://packmate-backend.onrender.com/api/trips/${id}`,
@@ -276,6 +278,8 @@ const TripDetailsPage = () => {
             setIsTickingMode(false);
         } catch (err) {
             console.error("Failed to save packing list", err);
+        } finally {
+            setIsSavingPackingList(false);
         }
     };
 
@@ -392,8 +396,8 @@ const TripDetailsPage = () => {
                                     <button className="edit-photos-btn" onClick={handleCancelTicking}>
                                         ❌ Cancel
                                     </button>
-                                    <button className="edit-photos-btn" onClick={handleSaveTicking} style={{ backgroundColor: "#10b981", color: "white", borderColor: "#10b981" }}>
-                                        💾 Save
+                                    <button className="edit-photos-btn" onClick={handleSaveTicking} style={{ backgroundColor: "#10b981", color: "white", borderColor: "#10b981", opacity: isSavingPackingList ? 0.6 : 1, cursor: isSavingPackingList ? "not-allowed" : "pointer" }} disabled={isSavingPackingList}>
+                                        {isSavingPackingList ? "💾 Saving..." : "💾 Save"}
                                     </button>
                                 </>
                             )}

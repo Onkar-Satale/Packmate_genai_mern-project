@@ -19,6 +19,7 @@ export default function Signup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSignup = async (e) => {
         e.preventDefault();
@@ -32,6 +33,8 @@ export default function Signup() {
             toast.error("❌ Passwords do not match");
             return;
         }
+
+        setIsLoading(true);
 
         try {
             const res = await axios.post(`${API_URL}/register`, {
@@ -73,6 +76,8 @@ export default function Signup() {
         } catch (err) {
             console.error(err);
             toast.error(err.response?.data?.message || "Signup failed");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -126,7 +131,9 @@ export default function Signup() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                     />
 
-                    <button type="submit" className="login-btn">Sign Up</button>
+                    <button type="submit" className="login-btn" disabled={isLoading}>
+                        {isLoading ? 'Signing you up...' : 'Sign Up'}
+                    </button>
                 </form>
 
                 <footer className="footer-login">
