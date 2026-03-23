@@ -61,7 +61,7 @@ PackMate follows a **microservices-inspired architecture**:
 
 ## 🖼️ System Design
 
-<img src="assets/System_Design.png" width="700" height="500" />
+<img src="assets/System_Design.png" width="700" height="400" />
 *High-level architecture of PackMate showing frontend, backend, and AI microservice integration.*
 
 ---
