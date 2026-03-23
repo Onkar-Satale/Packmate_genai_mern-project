@@ -61,7 +61,8 @@ PackMate follows a **microservices-inspired architecture**:
 
 ## 🖼️ System Design
 
-![System Design](assets/system-design.png)
+
+<img width="1536" height="1024" alt="System_Design" src="https://github.com/user-attachments/assets/b5793c78-68bf-4964-a52e-c8654ce938d6" />
 
 ---
 
@@ -169,37 +170,63 @@ npm start
 
 
 🔹 GenAI Service
+```bash
 cd genai
 python -m venv venv
+```
+
+---
 
 # Windows
+```bash
 venv\Scripts\activate
+```
 
 # Mac/Linux
+```bash
 source venv/bin/activate
-
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
+```
+
+---
+
 🔹 Frontend
+```bash
 cd frontend
 npm install
 npm start
-📂 Project Structure
+```
+
+---
+
+### 📂 Project Structure
+
 PackMate/
- ┣ backend/
- ┣ frontend/
- ┣ genai/
-🚧 Future Improvements
-AWS S3 / Cloudinary optimization
-Real-time collaboration (WebSockets)
-Redis caching
-PDF export
-🎯 Key Highlights
-Full-stack + AI integration
-Microservices architecture
-Real-world problem solving
-Production-ready improvements
-Clean UX + scalable design
-###
-🛡️ License
+ -┣ backend/
+ -┣ frontend/
+ -┣ genai/
+
+---
+ 
+### 🚧 Future Improvements
+
+- AWS S3 / Cloudinary optimization
+- Real-time collaboration (WebSockets)
+- Redis caching
+- PDF export
+
+---
+
+### 🎯 Key Highlights
+
+- Full-stack + AI integration  
+- Microservices architecture  
+- Real-world problem solving  
+- Production-ready improvements  
+- Clean UX + scalable design  
+
+----
+
+### 🛡️ License
 MIT License
