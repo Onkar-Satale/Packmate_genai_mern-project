@@ -61,7 +61,7 @@ PackMate follows a **microservices-inspired architecture**:
 
 ## 🖼️ System Design
 
-<img src="assets/System_Design.png" width="700" />
+<img src="assets/System_Design.png" width="700" height="500" />
 *High-level architecture of PackMate showing frontend, backend, and AI microservice integration.*
 
 ---
@@ -69,7 +69,7 @@ PackMate follows a **microservices-inspired architecture**:
 ## 📸 PackMate Screenshots
 
 ### 🔑 Login Page
-<img src="assets/Login.png" width="700" />
+<img src="assets/Login.png" width="700 " />
 *Secure login using JWT and password hashing.*
 
 ### 🏠 Landing Page
