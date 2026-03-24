@@ -1,5 +1,18 @@
+"""
+Smart Packing Assistant API - FastAPI Backend
+
+This Python fastAPI service acts as the GenAI backend for the Smart Packing Assistant application. 
+It receives trip details from the frontend, queries an LLM (Groq API) for a customized packing list 
+in JSON format, and returns the list. It also provides functionality to save trips to a separate Node.js 
+MongoDB backend and generate downloadable DOCX files.
+"""
+
+# ==========================================
+# ### IMPORTS & CONFIGURATION ###
+# ==========================================
 import os
-from dotenv import load_dotenv  # <-- add this
+import json
+from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -13,45 +26,65 @@ from docx import Document
 import re
 import requests
 from groq import Groq
-from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 
-
-
+# Resolve base directory to locate the .env file containing API keys
 BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR / ".env"
 
+# Load environment variables from the .env file into the os.environ dictionary
 load_dotenv(dotenv_path=ENV_PATH, override=True)
 
-# ---------------- ENV ----------------
+# Retrieve API keys from environment variables
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-OPENCAGE_API_KEY = os.getenv("OPENCAGE_API_KEY")  # Use for weather API key
+OPENCAGE_API_KEY = os.getenv("OPENCAGE_API_KEY")
 
-print("GROQ_API_KEY is:", GROQ_API_KEY)
+# Ensure the Groq API key is present before starting the app.
 if not GROQ_API_KEY:
     raise Exception("GROQ_API_KEY not loaded!")
 
-# ---------------- FASTAPI APP ----------------
+# ==========================================
+# ### APP INITIALIZATION & MIDDLEWARE ###
+# ==========================================
+
+# Initialize the FastAPI application
 app = FastAPI(title="Smart Packing Assistant API")
 
+# Setup rate limiting to prevent abuse. get_remote_address uses the client's IP.
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
+
+# Register a custom exception handler to gracefully return an error when limits are exceeded.
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Health-check root endpoint
 @app.get("/")
 def root():
+    """
+    Root endpoint to verify the API is running successfully.
+    Returns: A simple JSON message indicating live status.
+    """
     return {"message": "Smart Packing Assistant API is live ✅"}
 
+# Add CORS middleware to allow the React frontend to communicate with this backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # allow React frontend
+    allow_origins=["*"],  # Allows all origins, change this in production for security.
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
 )
 
-# ---------------- Pydantic Models ----------------
+# ==========================================
+# ### PYDANTIC DATA MODELS ###
+# ==========================================
+# These models define the expected shape of the incoming JSON requests.
+# FastAPI validates incoming requests automatically based on these definitions.
+
 class TripRequestGenerate(BaseModel):
+    """
+    Expected input format for generating a packing list or downloading it.
+    """
     location: str
     days: int
     trip_type: str
@@ -62,9 +95,12 @@ class TripRequestGenerate(BaseModel):
     food: str
     luggage: str
     travel_type: str
-    people: str  # string for packing list
+    people: str  # A flat string describing all travelers (e.g. "John, 25 years, Male")
 
 class TripRequestSave(BaseModel):
+    """
+    Expected input format for saving a trip to the main Node.js MongoDB backend.
+    """
     location: str
     days: int
     trip_type: str
@@ -75,203 +111,57 @@ class TripRequestSave(BaseModel):
     food: str
     luggage: str
     travel_type: str
-    people: list  # array of objects for MERN save
+    people: list # A structured list of objects representing the travelers for the database.
 
-# ---------------- ICON MAP (optional for React UI) ----------------
-ICON_MAP = {
-# ---------------- DOCUMENTS ----------------
-#     "document": "🧾",
-#     "documents": "🧾",
-#     "passport": "📄",
-#     "visa": "🛂",
-#     "id": "💳",
-#     "identity": "💳",
-#     "license": "🪪",
-#     "tickets": "🎟️",
-#     "boarding": "✈️",
-#     "insurance": "📑",
-#     "hotel": "🏨",
-#     "reservation": "📆",
-
-#     # ---------------- CLOTHING ----------------
-#     "clothing": "👕",
-#     "shirt": "👕",
-#     "t-shirt": "👕",
-#     "top": "👕",
-#     "pants": "👖",
-#     "trousers": "👖",
-#     "jeans": "👖",
-#     "shorts": "🩳",
-#     "jacket": "🧥",
-#     "coat": "🧥",
-#     "sweater": "🧶",
-#     "hoodie": "🧥",
-#     "dress": "👗",
-#     "skirt": "👗",
-#     "sleepwear": "😴",
-#     "pajamas": "😴",
-#     "underwear": "🩲",
-#     "undergarments": "🩲",
-#     "socks": "🧦",
-#     "scarf": "🧣",
-#     "cap": "🧢",
-#     "hat": "👒",
-#     "belt": "🧷",
-
-#     # ---------------- FOOTWEAR ----------------
-#     "shoes": "👟",
-#     "footwear": "👟",
-#     "sneakers": "👟",
-#     "sandals": "🩴",
-#     "slippers": "🩴",
-#     "boots": "🥾",
-#     "flip flops": "🩴",
-
-#     # ---------------- TOILETRIES ----------------
-#     "toiletry": "🧴",
-#     "toiletries": "🧴",
-#     "toothbrush": "🪥",
-#     "toothpaste": "🪥",
-#     "shampoo": "🧴",
-#     "conditioner": "🧴",
-#     "soap": "🧼",
-#     "body wash": "🧼",
-#     "face wash": "🧴",
-#     "razor": "🪒",
-#     "shaving": "🪒",
-#     "deodorant": "🧴",
-#     "perfume": "🌸",
-#     "sunscreen": "🌞",
-#     "moisturizer": "🧴",
-#     "lip balm": "💄",
-#     "towel": "🧻",
-#     "tissues": "🧻",
-#     "wet wipes": "🧻",
-
-#     # ---------------- ELECTRONICS ----------------
-#     "electronics": "📱",
-#     "phone": "📱",
-#     "mobile": "📱",
-#     "laptop": "💻",
-#     "tablet": "📱",
-#     "camera": "📷",
-#     "charger": "🔌",
-#     "charging": "🔌",
-#     "power bank": "🔋",
-#     "headphones": "🎧",
-#     "earphones": "🎧",
-#     "adapter": "🔌",
-#     "extension": "🔌",
-
-#     # ---------------- MEDICAL ----------------
-#     "medicine": "💊",
-#     "medication": "💊",
-#     "medicines": "💊",
-#     "first aid": "🩹",
-#     "bandage": "🩹",
-#     "painkiller": "💊",
-#     "prescription": "📄",
-#     "sanitizer": "🧴",
-#     "mask": "😷",
-#     "thermometer": "🌡️",
-
-#     # ---------------- ACCESSORIES ----------------
-#     "wallet": "👛",
-#     "money": "💵",
-#     "cash": "💵",
-#     "credit card": "💳",
-#     "sunglasses": "🕶️",
-#     "watch": "⌚",
-#     "jewelry": "💍",
-#     "ring": "💍",
-#     "necklace": "📿",
-#     "earrings": "💍",
-#     "key": "🔑",
-#     "lock": "🔒",
-#     "umbrella": "☂️",
-
-#     # ---------------- FOOD ----------------
-#     "snacks": "🍫",
-#     "food": "🍱",
-#     "biscuits": "🍪",
-#     "chips": "🍟",
-#     "dry fruits": "🥜",
-#     "water bottle": "🚰",
-#     "bottle": "🚰",
-
-#     # ---------------- ACTIVITY ----------------
-#     "swim": "🏊",
-#     "swimming": "🏊",
-#     "beach": "🏖️",
-#     "trek": "🥾",
-#     "hiking": "🥾",
-#     "gym": "🏋️",
-#     "workout": "🏋️",
-#     "yoga": "🧘",
-#     "business": "💼",
-#     "formal": "👔",
-#     "meeting": "💼",
-
-#     # ---------------- BAGS ----------------
-#     "bag": "🎒",
-#     "backpack": "🎒",
-#     "suitcase": "🧳",
-#     "luggage": "🧳",
-#     "handbag": "👜",
-#     "pouch": "👝",
-
-#     # ---------------- MISC ----------------
-#     "book": "📘",
-#     "notebook": "📓",
-#     "pen": "🖊️",
-#     "map": "🗺️",
-#     "guide": "📘",
-#     "sleep": "😴",
-#     "ear plugs": "😴"
-}
-
-def get_icon(text: str) -> str:
-    text = text.lower()
-    for key, icon in ICON_MAP.items():
-        if key in text:
-            return icon
-    return "🎒"
-
-# ---------------- UTILS ----------------
-def extract_items(text: str):
-    lines = text.split("\n")
-    clean = []
-    for line in lines:
-        line = re.sub(r"^[•\-*\d.]+", "", line).strip()
-        if line:
-            clean.append(line)
-    return clean
+# ==========================================
+# ### HELPER FUNCTIONS ###
+# ==========================================
 
 def create_docx(summary: str, packing_list: list):
-    """Create DOCX including emojis (do NOT strip them)"""
+    """
+    Creates an in-memory Microsoft Word document (.docx) containing the summary and packing list.
+    
+    Args:
+        summary (str): The AI-generated summary paragraph for the trip.
+        packing_list (list): The list of packing items including category headers.
+        
+    Returns:
+        BytesIO: A byte buffer containing the Word document data, ready for streaming.
+    """
     buffer = BytesIO()
     doc = Document()
+    
+    # Add title and summary
     doc.add_heading("🎒 Smart Packing Assistant", level=1)
     for line in summary.split("\n"):
         if line.strip():
             doc.add_paragraph(line)
+            
+    # Add packing list items as bullets
     doc.add_heading("Packing List", level=2)
     for item in packing_list:
         doc.add_paragraph(item, style="List Bullet")
+        
     doc.save(buffer)
-    buffer.seek(0)
+    buffer.seek(0) # Reset buffer position to the start for reading
     return buffer
 
-# ---------------- WEATHER ----------------
 def get_avg_temperature(location: str):
     """
-    Returns the current temperature (Celsius) for the destination.
-    Can be replaced with a multi-day forecast if needed.
+    Fetches the current average temperature for the provided destination using OpenWeather API.
+    
+    Args:
+        location (str): The name of the city or destination.
+        
+    Returns:
+        float | None: The temperature in Celsius if successful, or None if the request fails.
     """
     try:
         url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={OPENCAGE_API_KEY}"
         res = requests.get(url, timeout=5)
         data = res.json()
+        
+        # Check if request succeeded and "main" block (which contains temp) is returned
         if res.status_code == 200 and "main" in data:
             temp = data["main"]["temp"]
             return temp
@@ -281,55 +171,46 @@ def get_avg_temperature(location: str):
         print("Weather API error:", e)
         return None
 
-# ---------------- POST-PROCESSING ----------------
-def add_medical_items(packing_list: list, people_str: str):
-    """Add medical items based on traveler info"""
-    for line in people_str.split("\n"):
-        if "fever" in line.lower():
-            if "Fever medication 💊" not in packing_list:
-                packing_list.append("Fever medication 💊")
-        if "allergy" in line.lower():
-            if "Antihistamines 💊" not in packing_list:
-                packing_list.append("Antihistamines 💊")
-    return packing_list
-
-def add_weather_items(packing_list: list, temp: float):
-    """Include items based on temperature"""
-    if temp is None:
-        return packing_list
-    if temp <= 10:  # cold
-        for item in ["Jacket 🧥", "Warm socks 🧦", "Gloves 🧤"]:
-            if item not in packing_list:
-                packing_list.append(item)
-    elif temp >= 30:  # hot
-        for item in ["Sunscreen 🌞", "Hat 🧢", "Sunglasses 🕶️"]:
-            if item not in packing_list:
-                packing_list.append(item)
-    return packing_list
-
-# ---------------- AI ENGINE ----------------
-def generate_packing_list(data: dict):
+def generate_packing_data(data: dict):
+    """
+    The core logic integrating with the Groq Large Language Model.
+    Sends environmental and traveler data to generate a complete packing list.
     
+    Args:
+        data (dict): The dictionary representation of the TripRequestGenerate model.
+        
+    Returns:
+        dict: A parsed JSON response matching the required structure:
+            { "summary": "...", "packing_list": ["header", "item", ...] }
+    """
+    # Initialize the Groq client to call the LLM
     client = Groq(api_key=GROQ_API_KEY)
 
-    # Get temperature
+    # Gather temperature to provide environmental context to the AI
     temp = get_avg_temperature(data['location'])
     temp_info = f"Average temperature: {temp}°C" if temp is not None else "Temperature unknown"
 
+    # Define the system prompt guiding the AI's behavior, establishing rules, and restricting the output format
     system_prompt = """
 ========================
-SMART PACKING ASSISTANT - DETAILED PACKING LIST
+SMART PACKING ASSISTANT - DETAILED AI-GENERATED PACKING LIST
 ========================
 
-You are a **senior professional travel planner and packing consultant**. 
-Your task is to generate a **full, practical, and detailed packing list** for any traveler or group, 
-based on their trip information, preferences, health, and destination conditions.
+You are a senior professional travel planner and packing consultant. Your task is to generate a complete, structured, and practical packing list for any traveler or group based entirely on the provided trip and traveler information. 
+⚠️ IMPORTANT:
+- Always include **all 12 mandatory sections** listed below in the exact order, even if minimal items are needed.
+- Quantities, emojis, and items must be **dynamically decided** based on input data.
+- Use **standardized emojis per section** consistently.
+- Consider **traveler-specific details**: age, gender, medical notes, dietary restrictions, chronic conditions.
+- Consider **trip details**: location, climate, temperature, activities, duration, accommodation, budget, luggage style.
+- Include optional, backup, and emergency items for all travelers.
+- Adjust items for **weather conditions** (cold, hot, rainy, humid) and trip duration.
+- Ensure **practicality**: only include items travelers can realistically carry.
+- Output **only the packing list in a flat JSON list**, do not include greetings, explanations, or nested arrays.
 
-⚠️ IMPORTANT: Always generate a **complete packing list** covering all relevant items. 
-All sections listed must appear in the output, even if only minimal items are needed.
 
 ========================
-MANDATORY SECTIONS
+MANDATORY SECTIONS (ALL CAPS)
 ========================
 1. DOCUMENTS
 2. CLOTHING
@@ -340,191 +221,103 @@ MANDATORY SECTIONS
 7. ACCESSORIES
 8. FOOD & SNACKS
 9. ACTIVITY-SPECIFIC ITEMS
-10. MISCELLANEOUS / OTHER ESSENTIALS
+10. MISCELLANEOUS
 11. WEATHER-SPECIFIC ITEMS
 12. SAFETY & EMERGENCY ITEMS
 
 ========================
 GENERAL INSTRUCTIONS
 ========================
-- Generate a **full, exhaustive, and practical packing list**.
-- Include optional, backup, and emergency items (extra socks, chargers, first-aid, medications).
-- Tailor **quantities and variety** based on total days, number of travelers, and laundry availability.
-- Include **all traveler-specific adjustments**: age, gender, medical conditions, preferences.
-- Use **weather and destination info** to adjust clothing, footwear, accessories, and emergency items.
-- Consider **trip type** (solo, family, business, adventure, honeymoon) for safety and special items.
-- Include activity-specific items for workouts, beach, trekking, photography, work, or shopping.
-- Include electronics and gadgets according to traveler info (phones, laptops, cameras, chargers).
-- Include food, snacks, and hydration items (especially for families, kids, or long trips).
-- Avoid vague words like "stuff" or "things" and brand names.
-- Always ensure the list is **practical, realistic, and ready-to-go**.
-- Use **emojis** for better readability.
-
-========================
-OBSERVE THESE FIELDS
-========================
-Trip Basics:
-- Destination (climate, temperature, culture)
-- Start Date / End Date / Total Days (adjust clothing quantities)
-- Trip Type (Solo, Family, Business, Adventure, Honeymoon)
-- Travel Mode (Flight, Train, Bus, Car)
-- Accommodation Type (Hotel, Hostel, Resort, Homestay, Private Room)
-- Room Type and Laundry availability
-- Budget Level (affects optional gadgets and accessories)
-- Lifestyle & Comfort Preferences (Weather Sensitivity, Activity Level)
-- Shopping Plan (include shopping-related items)
-- Photography / Video Gear (add accessories)
-- Work Laptop / Devices (include electronics)
-
-Food & Health:
-- Food Preference (Vegetarian, Vegan, Non-Veg)
-- Dietary Notes (Allergies, restrictions)
-- Medical Notes (Chronic conditions, medications, special requirements)
-- Emergency medications (fever, antihistamines, painkillers, first-aid)
-
-Travelers Information:
-- Number of Kids / Elders
-- Each Traveler: Name, Age, Gender, Medical Notes
-
-Environmental Info:
-- Use temperature, season, and weather of destination to add clothing, footwear, and accessories.
-- Include cold-weather items (jackets, gloves, scarves, thermal wear) if destination is cold.
-- Include hot-weather items (hats, sunscreen, light clothing) if destination is hot.
-
-Traveler- and Duration-Aware Adjustments:
-- Adjust item quantities based on TOTAL DAYS (e.g., 7 T-shirts for 7 days without laundry, fewer if laundry available).
-- Include items for each traveler according to age and medical needs.
-- Solo travelers: provide minimal but complete essentials.
-- Multi-person/family trips: include full list for all travelers.
-- Emergency items based on traveler medical info or potential weather risks.
+- Include **quantities appropriate** for number of days, travelers, and laundry availability.
+- Include **all traveler-specific adjustments**: age, gender, medical notes, dietary restrictions.
+- Include **weather-appropriate items** based on destination temperature and season.
+- Include **electronics and accessories** according to traveler details (phones, laptops, cameras, chargers).
+- Include **food, snacks, and hydration** as per traveler type (solo, kids, elders, family).
+- Include **backup and emergency items**: extra socks, chargers, first-aid, medications.
+- For multi-person trips, include items for **each traveler individually**.
+- **Do not use placeholders** like "stuff" or "if needed".
+- Always use **consistent emojis per section**.
+- Output must be a **flat JSON list**, not nested arrays.
+- Ensure all items are **practical, ready-to-go, and realistic**.
+- **Every section MUST have at least one item.** If no specific activities are provided, add general exploration items (e.g. "Daypack 🎒", "Comfortable walking wear 👕") to ACTIVITY-SPECIFIC ITEMS so it is never empty.
 
 ========================
 OUTPUT FORMAT
 ========================
-- Divide output into **ALL CAPS sections** as listed above.
-- Each item **one bullet per line**.
-- Include **emojis** for visual clarity.
-- Quantities should be included implicitly where relevant.
-- Include optional and backup items.
-- Include items for each traveler if multi-person/family trip.
-- Include weather-appropriate items (jackets, sunscreen, raincoat, gloves, etc.).
-- Include safety and emergency items: first-aid kit, medications, power bank, travel locks, etc.
-- Only include **relevant sections**. If a section is optional, keep it minimal but present.
-- Do NOT include greetings, instructions, or summaries. Only the packing list.
+Respond ONLY with **JSON object** in this exact format:
 
-========================
-EXAMPLE OUTPUT
-========================
-
-DOCUMENTS
-Passport 📄
-Visa 🛂
-Government ID 💳
-Flight tickets 🎟️
-Hotel booking confirmation 🏨
-Travel insurance card 🏥
-ID proofs for all travelers 📝
-
-CLOTHING
-T-shirts 👕 (quantity based on days)
-Jeans / Pants 👖
-Shorts 🩳
-Jacket 🧥 (weather-dependent)
-Sleepwear 😴
-Undergarments 🩲
-Socks 🧦
-Hat 🧢 / Gloves 🧤 / Scarf 🧣 (weather-dependent)
-Raincoat / Umbrella ☔️ (if needed)
-Thermal wear 🧥 (cold destinations)
-Warm socks 🧦
-
-FOOTWEAR
-Comfortable walking shoes 👟
-Sandals 🩴
-Slippers 🛋️
-Boots 🥾 (cold / hiking)
-
-TOILETRIES & PERSONAL CARE
-Toothbrush 🪥
-Toothpaste 🪥
-Soap / Body wash 🧼
-Shampoo & Conditioner 🧴
-Deodorant 🧴
-Razor 🪒
-Lip balm 💄 (cold weather)
-Moisturizer 🧴 (cold weather)
-Towel 🧻
-Sunscreen 🌞 (hot weather)
-
-ELECTRONICS & GADGETS
-Smartphone & charger 📱
-Laptop & charger 💻
-Power bank 🔋
-Camera & accessories 📷
-Headphones 🎧
-Travel adapter 🔌
-
-MEDICAL & HEALTH
-First aid kit 🩹
-Prescription medication 💊
-Fever medication 💊
-Cold medication 💊
-Pain relievers 🤕
-Antihistamines 💊
-Water bottle 💧
-Thermometer 🌡️
-
-ACCESSORIES
-Sunglasses 🕶️
-Backpack / Daypack 🎒
-Travel wallet 💵
-Watch ⌚
-Umbrella ☔️
-Earplugs & eye mask 😴
-Hat 🧢
-
-FOOD & SNACKS
-Non-perishable snacks 🍫
-Energy bars 🍿
-Reusable water bottle 💧
-Baby food / formula if applicable 🍼
-
-ACTIVITY-SPECIFIC ITEMS
-Gym clothes 🏋️
-Swimwear 🏊
-Hiking shoes 🥾
-Camera gear 📷
-Travel journal 📝
-
-MISCELLANEOUS / OTHER ESSENTIALS
-Notebook 📝
-Pen 🖊️
-Guidebook 📘
-Map 🗺️
-Laundry bag 🧺
-
-WEATHER-SPECIFIC ITEMS
-Cold-weather: thermal wear 🧥, gloves 🧤, hat 🧢
-Hot-weather: sunscreen 🌞, hat 🧢, light clothing 🩳
-Rainy: umbrella ☔️, waterproof jacket 🧥
-
-SAFETY & EMERGENCY ITEMS
-First-aid kit 🩹
-Travel locks 🔒
-Power bank 🔋
-Emergency contact info 📇
-Flashlight 🔦
-
-========================
-IMPORTANT
-========================
-- Always tailor to travelers’ medical info, temperature, number of days, and activities.
-- Include items for each traveler if multi-person/family trip.
-- Ensure practicality: travelers can realistically carry and use all items.
-- Provide **only the packing list** in the above structured format with emojis.
-
+{
+  "packing_list": [
+    "DOCUMENTS",
+    "Passport 📄 (1 per traveler)",
+    "Visa 🛂 (if required)",
+    "Flight tickets 🎟️",
+    "Hotel booking confirmation 🏨",
+    "Travel insurance card 🏥",
+    ...
+    "CLOTHING",
+    "T-shirts 👕 (N)",
+    "Jeans / Pants 👖 (N)",
+    "Shorts 🩳 (N)",
+    "Sleepwear 😴 (N)",
+    ...
+    "FOOTWEAR",
+    "Walking shoes 👟",
+    "Sandals 🩴",
+    ...
+    "TOILETRIES & PERSONAL CARE",
+    "Toothbrush 🪥",
+    "Toothpaste 🪥",
+    "Soap / Body wash 🧼",
+    ...
+    "MEDICAL & HEALTH",
+    "First aid kit 🩹",
+    "Prescription medication 💊",
+    "Fever medication 💊",
+    ...
+    "ACCESSORIES",
+    "Sunglasses 🕶️",
+    "Backpack 🎒",
+    "Umbrella ☔️",
+    ...
+    "ELECTRONICS & GADGETS",
+    "Smartphone & charger 📱",
+    "Laptop & charger 💻",
+    "Camera 📷",
+    ...
+    "FOOD & SNACKS",
+    "Non-perishable snacks 🍫",
+    "Energy bars 🍿",
+    "Reusable water bottle 💧",
+    ...
+    "ACTIVITY-SPECIFIC ITEMS",
+    "Gym clothes 🏋️",
+    "Swimwear 🏊",
+    "Trekking shoes 🥾",
+    ...
+    "MISCELLANEOUS",
+    "Notebook 📝",
+    "Guidebook 📘",
+    ...
+    "WEATHER-SPECIFIC ITEMS",
+    "Thermal wear 🧥 (cold weather)",
+    "Sunscreen 🌞 (hot weather)",
+    "Raincoat ☔️ (rainy weather)",
+    ...
+    "SAFETY & EMERGENCY ITEMS",
+    "Travel locks 🔒",
+    "Power bank 🔋",
+    "Flashlight 🔦",
+    "Emergency contact info 📇"
+  ]
+}
+- Do not use nested arrays. Use a **flat list**.
+- Each **section header is ALL CAPS, max 30 characters, no emojis**.
+- Each **item under a section must include emoji** and quantity if relevant.
+- Generate **all items dynamically**. Do not use placeholders like "if needed" or "stuff".
 """
 
+    # Populate the dynamic data for the current request
     user_prompt = f"""
 Location: {data['location']}
 Duration: {data['days']} days
@@ -533,16 +326,28 @@ Purpose: {data['purpose']}
 Activities: {data['activities']}
 Stay Type: {data['stay_type']}
 Budget: {data['budget']}
-Food: {data['food']}
-Luggage: {data['luggage']}
-Travel Type: {data['travel_type']}
-Travelers: {data['people']}
+Food Preference: {data['food']}
+Luggage Style: {data['luggage']}
+Travel Mode: {data['travel_type']}
+Travelers details: {data['people']}
 
-{temp_info}
 
-Include items based on temperature and travelers' medical info.
+Include all packing items dynamically based on:
+- Traveler-specific medical notes, age, gender
+- Weather conditions and temperature
+- Trip duration, activities, and accommodation
+- Budget and luggage style
+- Ensure all 12 mandatory sections are included
+- Use consistent emojis and realistic quantities
+
+Environmental Context:
+{temp_info}. Use this to determine weather-appropriate items.
+
+Generate the JSON packing list now.
 """
 
+    # Make the call to the Groq API model
+    # We specify response_format={"type": "json_object"} to strictly enforce a JSON response structure.
     res = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
@@ -550,29 +355,75 @@ Include items based on temperature and travelers' medical info.
             {"role": "user", "content": user_prompt}
         ],
         temperature=0.4,
-        max_completion_tokens=500
+        max_completion_tokens=2000,
+        response_format={"type": "json_object"}
     )
+    
+    try:
+        content = res.choices[0].message.content
+        result = json.loads(content)
+        
+        # Ensure packing_list items are clean from stray bullet points or numbering if the AI still added them
+        clean_list = []
+        for line in result.get("packing_list", []):
+            if not isinstance(line, str):
+                continue
+            # Regex to remove bullets or numbering at the start of a response item
+            clean_line = re.sub(r"^[•\-*\d.]+\s*", "", line).strip()
+            if clean_line:
+                clean_list.append(clean_line)
+                
+        result["packing_list"] = clean_list
+        return result
+    except Exception as e:
+        print("JSON Parsing or Generation error:", e)
+        # Fallback plan in case Groq response fails processing or breaks JSON format
+        return {
+            "summary": f"Location: {data['location']}\nDuration: {data['days']} days\nTrip Type: {data['trip_type']}",
+            "packing_list": ["GENERAL", "Essential items 🎒 (1)"]
+        }
 
-    packing_list = extract_items(res.choices[0].message.content)
-    packing_list = add_medical_items(packing_list, data['people'])
-    packing_list = add_weather_items(packing_list, temp)
+# ==========================================
+# ### API ENDPOINTS ###
+# ==========================================
 
-    return packing_list
-
-# ---------------- ENDPOINTS ----------------
 @app.post("/generate-packing-list")
-@limiter.limit("5/minute")
+@limiter.limit("5/minute") # Rate limiting endpoint to 5 requests per minute per IP
 def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
+    """
+    Primary API Endpoint to generate an AI-driven packing list.
+    
+    Expected Body (TripRequestGenerate format): 
+      JSON with location, days, trip_type, budget, food, luggage, people, etc.
+      
+    Returns: 
+      JSON response containing:
+      {
+         "summary": "...",
+         "packing_list": ["SECTION", "Item", "Item", ...]
+      }
+    """
     data = trip.dict()
-    packing_list = generate_packing_list(data)
-    summary = f"Location: {data['location']}\nDuration: {data['days']} days\nTrip Type: {data['trip_type']}"
-    return {"summary": summary, "packing_list": packing_list}
+    ai_result = generate_packing_data(data)
+    return ai_result
 
 @app.post("/download-packing-list")
 def api_download_packing_list(trip: TripRequestGenerate):
+    """
+    Endpoint that generates the packing list and packages it directly into a downloadable .docx file.
+    
+    Expected Body: 
+      JSON with location, days, trip_type, budget, food, luggage, people, etc.
+      
+    Returns:
+      StreamingResponse serving a Word Document file as an attachment.
+    """
     data = trip.dict()
-    packing_list = generate_packing_list(data)
-    summary = f"Location: {data['location']}\nDuration: {data['days']} days\nTrip Type: {data['trip_type']}"
+    ai_result = generate_packing_data(data)
+    summary = ai_result.get("summary", "")
+    packing_list = ai_result.get("packing_list", [])
+    
+    # Create DOCX and stream it back
     doc = create_docx(summary, packing_list)
     return StreamingResponse(
         doc,
@@ -582,9 +433,21 @@ def api_download_packing_list(trip: TripRequestGenerate):
 
 @app.post("/save-trip")
 def api_save_trip(trip: TripRequestSave):
+    """
+    Endpoint to save a newly configured trip into the main MERN database.
+    This acts as a proxy forwarding the payload to the Node.js backend to bypass CORS 
+    or logic abstraction constraints.
+    
+    Expected Body (TripRequestSave format): 
+      JSON matching MERN database schema requirements.
+      
+    Returns:
+      JSON confirmation message and the MERN Node.js backend response.
+    """
     trip_data = trip.dict()
     MERN_API_URL = os.environ.get("MERN_API_URL", "http://localhost:5000/api/trips")
     try:
+        # Forwards the payload to the external Node.js logic
         response = requests.post(MERN_API_URL, json=trip_data, timeout=10)
         if response.status_code in (200, 201):
             return {"message": "Trip saved to MERN backend!", "mern_response": response.json()}
@@ -593,10 +456,14 @@ def api_save_trip(trip: TripRequestSave):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ==========================================
+# ### APPLICATION ENTRY POINT ###
+# ==========================================
 if __name__ == "__main__":
     import uvicorn
+    # Start the server using Uvicorn. Enables hot-reload during active development.
     uvicorn.run(
-        "main:app",  # your filename without .py : app instance
+        "main:app",
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
         reload=True
