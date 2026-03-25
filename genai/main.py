@@ -37,7 +37,7 @@ load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 # Retrieve API keys from environment variables
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-OPENCAGE_API_KEY = os.getenv("OPENCAGE_API_KEY")
+WEATHERAPI_API_KEY = os.getenv("WEATHERAPI_API_KEY")
 
 # Ensure the Groq API key is present before starting the app.
 if not GROQ_API_KEY:
@@ -157,13 +157,13 @@ def get_avg_temperature(location: str):
         float | None: The temperature in Celsius if successful, or None if the request fails.
     """
     try:
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&units=metric&appid={OPENCAGE_API_KEY}"
+        url = f"https://api.weatherapi.com/v1/current.json?key={WEATHERAPI_API_KEY}&q={location}"
         res = requests.get(url, timeout=5)
         data = res.json()
         
         # Check if request succeeded and "main" block (which contains temp) is returned
-        if res.status_code == 200 and "main" in data:
-            temp = data["main"]["temp"]
+        if res.status_code == 200 and "current" in data:
+            temp = data["current"]["temp_c"]
             return temp
         else:
             return None
@@ -468,3 +468,6 @@ if __name__ == "__main__":
         port=int(os.environ.get("PORT", 5000)),
         reload=True
     )
+
+
+
