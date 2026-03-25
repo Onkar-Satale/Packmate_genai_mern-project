@@ -38,6 +38,7 @@ export default function PackingAssistant() {
         });
 
     const [packingList, setPackingList] = useState([]);
+    const [summary, setSummary] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -46,6 +47,7 @@ export default function PackingAssistant() {
     useEffect(() => {
         const savedTrip = sessionStorage.getItem("trip");
         const savedPackingList = sessionStorage.getItem("packingList");
+        const savedSummary = sessionStorage.getItem("summary");
 
 
         if (savedTrip) {
@@ -54,6 +56,10 @@ export default function PackingAssistant() {
 
         if (savedPackingList) {
             setPackingList(JSON.parse(savedPackingList));
+        }
+
+        if (savedSummary) {
+            setSummary(savedSummary);
         }
     }, []);
     const calculateDays = (start, end) => {
@@ -68,6 +74,7 @@ export default function PackingAssistant() {
         return () => {
             sessionStorage.removeItem("trip");
             sessionStorage.removeItem("packingList");
+            sessionStorage.removeItem("summary");
         };
     }, []);
 
@@ -169,6 +176,7 @@ export default function PackingAssistant() {
             const formattedList = formatPackingListForDB(res.data.packing_list);
 
             setPackingList(formattedList);
+            setSummary(res.data.summary || "");
 
         } catch (err) {
             console.error("Generation failed:", err);
@@ -294,29 +302,24 @@ export default function PackingAssistant() {
     const downloadDocx = async () => {
         setFormError(""); // reset error
         if (packingList.length === 0) {
-            setFormError("⚠️ Generate list first to download it.");
+            setFormError("⚠️ Please generate packing list first.");
             return;
         }
 
+        const flatPackingList = [];
+        packingList.forEach(section => {
+            flatPackingList.push(section.category);
+            if (Array.isArray(section.items)) {
+                section.items.forEach(item => {
+                    flatPackingList.push(item.name || item);
+                });
+            }
+        });
+
         // Map your React state to backend expected fields
         const payload = {
-            location: trip.destination || "",
-            days: trip.totalDays || 1,
-            trip_type: trip.tripType || "Solo",
-            purpose: trip.purpose || "Leisure",
-            activities: trip.activities || "None",
-            stay_type: trip.accommodation || "Hotel",
-            budget: trip.budget || "Medium",
-            food: trip.foodPreference || "No preference",
-            luggage: trip.luggage || "Backpack",
-            travel_type: trip.travelMode || "Flight",
-            people: trip.people
-                .map(
-                    (p) =>
-                        `${p.name || "Traveler"}, ${p.age || "N/A"} years, ${p.gender || "Female"
-                        }, Medical: ${p.medical || "None"}`
-                )
-                .join("\n") // Must be a single string
+            summary: summary,
+            packing_list: flatPackingList
         };
 
         try {
@@ -380,6 +383,11 @@ export default function PackingAssistant() {
     useEffect(() => {
         sessionStorage.setItem("packingList", JSON.stringify(packingList));
     }, [packingList]);
+
+    // 🔥 Step 4: Save summary to localStorage whenever it changes
+    useEffect(() => {
+        sessionStorage.setItem("summary", summary);
+    }, [summary]);
 
 
 

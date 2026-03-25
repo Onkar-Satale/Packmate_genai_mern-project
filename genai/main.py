@@ -12,8 +12,8 @@ MongoDB backend and generate downloadable DOCX files.
 # ==========================================
 import os
 import json
-from dotenv import load_dotenv, find_dotenv
-from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -97,21 +97,13 @@ class TripRequestGenerate(BaseModel):
     travel_type: str
     people: str  # A flat string describing all travelers (e.g. "John, 25 years, Male")
 
-class TripRequestSave(BaseModel):
+
+class DownloadRequest(BaseModel):
     """
-    Expected input format for saving a trip to the main Node.js MongoDB backend.
+    Expected input format for downloading a generated packing list.
     """
-    location: str
-    days: int
-    trip_type: str
-    purpose: str
-    activities: str
-    stay_type: str
-    budget: str
-    food: str
-    luggage: str
-    travel_type: str
-    people: list # A structured list of objects representing the travelers for the database.
+    summary: str
+    packing_list: list
 
 # ==========================================
 # ### HELPER FUNCTIONS ###
@@ -408,53 +400,24 @@ def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
     return ai_result
 
 @app.post("/download-packing-list")
-def api_download_packing_list(trip: TripRequestGenerate):
+def api_download_packing_list(req: DownloadRequest):
     """
-    Endpoint that generates the packing list and packages it directly into a downloadable .docx file.
+    Endpoint that packages the provided summary and packing list directly into a downloadable .docx file.
     
     Expected Body: 
-      JSON with location, days, trip_type, budget, food, luggage, people, etc.
+      JSON with summary and packing_list.
       
     Returns:
       StreamingResponse serving a Word Document file as an attachment.
     """
-    data = trip.dict()
-    ai_result = generate_packing_data(data)
-    summary = ai_result.get("summary", "")
-    packing_list = ai_result.get("packing_list", [])
-    
     # Create DOCX and stream it back
-    doc = create_docx(summary, packing_list)
+    doc = create_docx(req.summary, req.packing_list)
     return StreamingResponse(
         doc,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": "attachment; filename=Smart_Packing_List.docx"}
     )
 
-@app.post("/save-trip")
-def api_save_trip(trip: TripRequestSave):
-    """
-    Endpoint to save a newly configured trip into the main MERN database.
-    This acts as a proxy forwarding the payload to the Node.js backend to bypass CORS 
-    or logic abstraction constraints.
-    
-    Expected Body (TripRequestSave format): 
-      JSON matching MERN database schema requirements.
-      
-    Returns:
-      JSON confirmation message and the MERN Node.js backend response.
-    """
-    trip_data = trip.dict()
-    MERN_API_URL = os.environ.get("MERN_API_URL", "http://localhost:5000/api/trips")
-    try:
-        # Forwards the payload to the external Node.js logic
-        response = requests.post(MERN_API_URL, json=trip_data, timeout=10)
-        if response.status_code in (200, 201):
-            return {"message": "Trip saved to MERN backend!", "mern_response": response.json()}
-        else:
-            raise HTTPException(status_code=500, detail=response.text)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 # ==========================================
 # ### APPLICATION ENTRY POINT ###
@@ -468,6 +431,4 @@ if __name__ == "__main__":
         port=int(os.environ.get("PORT", 5000)),
         reload=True
     )
-
-
 
