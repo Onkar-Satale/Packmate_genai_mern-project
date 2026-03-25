@@ -13,7 +13,7 @@ MongoDB backend and generate downloadable DOCX files.
 import os
 import json
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -27,6 +27,7 @@ import re
 import requests
 from groq import Groq
 from pathlib import Path
+from datetime import datetime
 
 # Resolve base directory to locate the .env file containing API keys
 BASE_DIR = Path(__file__).resolve().parent
@@ -102,19 +103,29 @@ class DownloadRequest(BaseModel):
     """
     Expected input format for downloading a generated packing list.
     """
-    summary: str
     packing_list: list
 
 # ==========================================
 # ### HELPER FUNCTIONS ###
 # ==========================================
 
-def create_docx(summary: str, packing_list: list):
+def is_section_heading(item: str) -> bool:
+    item = item.strip()
+    if not item:
+        return False
+    if item.isupper():
+        return True
+    
+    # If the item ends with an emoji or non-ascii char
+    if not item[-1].isascii():
+        return True
+    return False
+
+def create_docx(packing_list: list):
     """
-    Creates an in-memory Microsoft Word document (.docx) containing the summary and packing list.
+    Creates an in-memory Microsoft Word document (.docx) containing the packing list.
     
     Args:
-        summary (str): The AI-generated summary paragraph for the trip.
         packing_list (list): The list of packing items including category headers.
         
     Returns:
@@ -123,16 +134,22 @@ def create_docx(summary: str, packing_list: list):
     buffer = BytesIO()
     doc = Document()
     
-    # Add title and summary
-    doc.add_heading("🎒 Smart Packing Assistant", level=1)
-    for line in summary.split("\n"):
-        if line.strip():
-            doc.add_paragraph(line)
+    # Add title and current date
+    doc.add_heading("Smart Packing Assistant", level=1)
+    
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    doc.add_paragraph(f"Generated on: {current_date}")
             
-    # Add packing list items as bullets
-    doc.add_heading("Packing List", level=2)
+    # Add packing list items
     for item in packing_list:
-        doc.add_paragraph(item, style="List Bullet")
+        item_stripped = item.strip()
+        if not item_stripped:
+            continue
+        
+        if is_section_heading(item_stripped):
+            doc.add_heading(item_stripped, level=2)
+        else:
+            doc.add_paragraph(item_stripped, style="List Bullet")
         
     doc.save(buffer)
     buffer.seek(0) # Reset buffer position to the start for reading
@@ -173,7 +190,7 @@ def generate_packing_data(data: dict):
         
     Returns:
         dict: A parsed JSON response matching the required structure:
-            { "summary": "...", "packing_list": ["header", "item", ...] }
+            { "packing_list": ["header", "item", ...] }
     """
     # Initialize the Groq client to call the LLM
     client = Groq(api_key=GROQ_API_KEY)
@@ -365,15 +382,9 @@ Generate the JSON packing list now.
             if clean_line:
                 clean_list.append(clean_line)
                 
-        result["packing_list"] = clean_list
-        return result
+        return {"packing_list": clean_list}
     except Exception as e:
-        print("JSON Parsing or Generation error:", e)
-        # Fallback plan in case Groq response fails processing or breaks JSON format
-        return {
-            "summary": f"Location: {data['location']}\nDuration: {data['days']} days\nTrip Type: {data['trip_type']}",
-            "packing_list": ["GENERAL", "Essential items 🎒 (1)"]
-        }
+        raise HTTPException(status_code=500, detail=f"Failed to generate packing list: {str(e)}")
 
 # ==========================================
 # ### API ENDPOINTS ###
@@ -391,7 +402,6 @@ def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
     Returns: 
       JSON response containing:
       {
-         "summary": "...",
          "packing_list": ["SECTION", "Item", "Item", ...]
       }
     """
@@ -402,16 +412,16 @@ def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
 @app.post("/download-packing-list")
 def api_download_packing_list(req: DownloadRequest):
     """
-    Endpoint that packages the provided summary and packing list directly into a downloadable .docx file.
+    Endpoint that packages the provided packing list directly into a downloadable .docx file.
     
     Expected Body: 
-      JSON with summary and packing_list.
+      JSON with packing_list.
       
     Returns:
       StreamingResponse serving a Word Document file as an attachment.
     """
     # Create DOCX and stream it back
-    doc = create_docx(req.summary, req.packing_list)
+    doc = create_docx(req.packing_list)
     return StreamingResponse(
         doc,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
