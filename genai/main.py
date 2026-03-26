@@ -226,6 +226,7 @@ def generate_packing_data(data: dict):
         logger.warning(f"⚠️ No pre-fetched temp provided for {data['location']}. Relying on AI's general knowledge.")
 
     temp_info = f"Average temperature: {temp}°C" if temp is not None else "Temperature unknown"
+    logger.info(f"🧠 Temp being sent to AI for Packing List: {temp_info}")
     
     # Define the system prompt guiding the AI's behavior, establishing rules, and restricting the output format
     system_prompt = """
@@ -428,19 +429,11 @@ def api_prefetch_weather(req: PrefetchWeatherRequest):
     
     # 1. Correct city with Groq (Fastest model for simple NLP extraction)
     prompt = f"""
-Extract and correct only the spelling of the city/destination from this text. 
-Do NOT replace the city with a larger city, the country, or any other location. 
-If the input is a country, leave it unchanged. 
-If the input is already a correct city name, return it as is. 
-Respond ONLY with the corrected city name, with no punctuation, extra words, or explanation.
-
-Additional instructions for temperature usage: 
-- Use the corrected city name to fetch weather.
-- If the weather API cannot provide a temperature for that city, try its nearby cities or, as a last resort, use the country-level temperature.
-- Under no circumstances should the AI change the city to a different major city or a country for temperature purposes.
-- Focus purely on spelling correction, not location substitution.
-
-Input: '{req.location}'
+Fix the spelling of this city or country: '{req.location}'
+Rules:
+1. ONLY return the final fixed location name.
+2. DO NOT include any punctuation, prefixes, apologies, or extra words.
+3. If it is already correct, just return it.
 """    
     try:
         res = client.chat.completions.create(
@@ -449,13 +442,22 @@ Input: '{req.location}'
             temperature=0.0,
             max_tokens=20
         )
-        corrected_city = res.choices[0].message.content.strip()
+        raw_response = res.choices[0].message.content.strip()
+        
+        # Fallback if Groq ignored instructions and wrote a conversational apology
+        if len(raw_response.split()) > 4:
+            corrected_city = req.location
+        else:
+            corrected_city = raw_response.strip(".,'\"")
+            
+        logger.info(f"✅ City Corrected (Groq): '{req.location}' -> '{corrected_city}'")
     except Exception as e:
         logger.error(f"Groq city correction error: {e}")
         corrected_city = req.location # Fallback to original
         
     # 2. Fetch weather for the corrected city
     temp = get_avg_temperature(corrected_city)
+    logger.info(f"🌡️ Temperature fetched for {corrected_city}: {temp}°C")
     
     return {"original": req.location, "location": corrected_city, "temperature": temp}
 
