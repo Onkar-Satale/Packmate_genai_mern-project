@@ -55,7 +55,7 @@ if not GROQ_API_KEY:
 # ==========================================
 
 # Initialize the FastAPI application
-app = FastAPI(title="Smart Packing Assistant API")
+app = FastAPI(title="🎒Smart Packing Assistant API")
 
 # Setup rate limiting to prevent abuse. get_remote_address uses the client's IP.
 limiter = Limiter(key_func=get_remote_address)
@@ -128,10 +128,7 @@ def is_section_heading(item: str) -> bool:
         return False
     if item.isupper():
         return True
-    
-    # If the item ends with an emoji or non-ascii char
-    if not item[-1].isascii():
-        return True
+        
     return False
 
 def create_docx(packing_list: list):
