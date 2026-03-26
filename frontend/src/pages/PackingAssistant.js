@@ -99,7 +99,7 @@ export default function PackingAssistant() {
 
         try {
             // Send typed city to our backend which uses Groq for instant correction & fetches weather simultaneously
-            const weatherRes = await axios.post("http://localhost:5001/prefetch-weather", { location: city });
+            const weatherRes = await axios.post("https://packmate69.onrender.com/prefetch-weather", { location: city });
 
             const correctedCity = weatherRes.data.location;
             const temp = weatherRes.data.temperature;
@@ -230,7 +230,7 @@ export default function PackingAssistant() {
 
         try {
             const res = await axios.post(
-                "http://localhost:5001/generate-packing-list",
+                "https://packmate69.onrender.com/generate-packing-list",
                 payload
             );
 
@@ -387,7 +387,7 @@ export default function PackingAssistant() {
         try {
             setIsDownloading(true);
             const res = await axios.post(
-                "http://localhost:5001/download-packing-list",
+                "https://packmate69.onrender.com/download-packing-list",
                 payload,
                 { responseType: "blob" }
             );
