@@ -182,7 +182,7 @@ def get_avg_temperature(location: str):
     if debug_force_temp is not None:
         try:
             override_temp = float(debug_force_temp)
-            logger.info(f"⚠️ DEBUG MODE: Overriding temperature to {override_temp}°C")
+            logger.debug(f"⚠️ DEBUG MODE: Overriding temperature to {override_temp}°C")
             return override_temp
         except ValueError:
             pass
@@ -192,12 +192,10 @@ def get_avg_temperature(location: str):
         res = requests.get(url, timeout=5)
         data = res.json()
         
-        logger.info(f"🌡️ Weather API response: {json.dumps(data)}")
-        
         # Check if request succeeded and "current" block is returned
         if res.status_code == 200 and "current" in data:
             temp = data["current"]["temp_c"]
-            logger.info(f"🌡️ Extracted temp: {temp}°C")
+            logger.debug(f"🌡️ Extracted temp: {temp}°C")
             return temp
         else:
             logger.warning("🌡️ Weather API succeeded but no valid temperature found.")
