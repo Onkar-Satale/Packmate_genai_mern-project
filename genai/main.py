@@ -12,6 +12,7 @@ MongoDB backend and generate downloadable DOCX files.
 # ==========================================
 import os
 import json
+from typing import Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -102,7 +103,7 @@ class TripRequestGenerate(BaseModel):
     luggage: str
     travel_type: str
     people: str  # A flat string describing all travelers (e.g. "John, 25 years, Male")
-    temperature: float = None
+    temperature: Optional[float] = None
 
 class PrefetchWeatherRequest(BaseModel):
     """
