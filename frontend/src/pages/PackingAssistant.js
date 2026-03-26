@@ -89,10 +89,42 @@ export default function PackingAssistant() {
         }
     }, [trip.startDate, trip.endDate]);
     const [formError, setFormError] = useState("");
+    const [prefetchedTemp, setPrefetchedTemp] = useState(null);
+    const [isCorrectingCity, setIsCorrectingCity] = useState(false);
+    const [isDestinationFocused, setIsDestinationFocused] = useState(false);
 
+    const handleCityCorrectionAndPrefetch = async (city) => {
+        if (!city) return;
+        setIsCorrectingCity(true);
+
+        try {
+            // Send typed city to our backend which uses Groq for instant correction & fetches weather simultaneously
+            const weatherRes = await axios.post("http://localhost:5001/prefetch-weather", { location: city });
+
+            const correctedCity = weatherRes.data.location;
+            const temp = weatherRes.data.temperature;
+
+            setTrip(prev => ({ ...prev, destination: correctedCity }));
+            setPrefetchedTemp(temp);
+
+        } catch (err) {
+            console.error("City correction/prefetch failed:", err);
+            // fallback gracefully
+        } finally {
+            setIsCorrectingCity(false);
+        }
+    };
+
+    const handleDestinationKeyDown = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            handleCityCorrectionAndPrefetch(trip.destination);
+        }
+    };
 
     const handleChange = (e, idx = null, field = null) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+        let finalValue = value;
 
         const booleanFields = [
             "shopping",
@@ -101,10 +133,39 @@ export default function PackingAssistant() {
             "laundry"
         ];
 
-        let finalValue = value;
+        let fieldName = idx !== null ? field : name;
 
         if (booleanFields.includes(name)) {
             finalValue = value === "true";
+        }
+
+        // 1. Numeric fields (kids, elders, age): ONLY digits
+        if (["kids", "elders", "age"].includes(fieldName)) {
+            finalValue = String(finalValue).replace(/\D/g, "");
+        }
+
+        // 2. Text fields (dietaryNotes, medicalNotes, medical, name, destination): ONLY text (no digits)
+        if (["dietaryNotes", "medicalNotes", "medical", "name", "destination"].includes(fieldName)) {
+            finalValue = String(finalValue).replace(/\d/g, "");
+        }
+
+        // 3. Location Auto-correction and capitalization
+        if (fieldName === "destination") {
+            let valStr = String(finalValue).toLowerCase();
+            const typoMap = {
+                "mumbaai": "Mumbai",
+                "pune": "Pune",
+                "delhi": "Delhi",
+                "banglore": "Bangalore",
+                "goa": "Goa"
+            };
+
+            if (typoMap[valStr]) {
+                finalValue = typoMap[valStr];
+            } else if (finalValue.length > 0) {
+                // capitalize first letter automatically
+                finalValue = finalValue.charAt(0).toUpperCase() + finalValue.slice(1);
+            }
         }
 
         if (idx !== null) {
@@ -163,12 +224,13 @@ export default function PackingAssistant() {
                     (p) =>
                         `${p.name || "Traveler"}, ${p.age || "N/A"} years, ${p.gender || "Female"}, Medical: ${p.medical || "None"}`
                 )
-                .join("\n")
+                .join("\n"),
+            temperature: prefetchedTemp
         };
 
         try {
             const res = await axios.post(
-                "https://packmate69.onrender.com/generate-packing-list",
+                "http://localhost:5001/generate-packing-list",
                 payload
             );
 
@@ -325,7 +387,7 @@ export default function PackingAssistant() {
         try {
             setIsDownloading(true);
             const res = await axios.post(
-                "https://packmate69.onrender.com/download-packing-list",
+                "http://localhost:5001/download-packing-list",
                 payload,
                 { responseType: "blob" }
             );
@@ -431,8 +493,16 @@ export default function PackingAssistant() {
                     name="destination"
                     value={trip.destination}
                     onChange={handleChange}
+                    onKeyDown={handleDestinationKeyDown}
+                    onFocus={() => setIsDestinationFocused(true)}
+                    onBlur={() => setIsDestinationFocused(false)}
+                    placeholder="Type city and press Enter for auto-correction"
                 />
-
+                {isCorrectingCity ? (
+                    <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled. You may continue with the other fields.</small>
+                ) : isDestinationFocused ? (
+                    <small style={{ color: "#007bff" }}>💡 Please press Enter after you are done typing for auto-correction.</small>
+                ) : null}
 
                 <div className="grid">
                     <div>
@@ -643,6 +713,11 @@ export default function PackingAssistant() {
                             min="0"
                             value={trip.kids}
                             onChange={handleChange}
+                            onKeyDown={(e) => {
+                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                         />
                     </div>
                     <div>
@@ -653,6 +728,11 @@ export default function PackingAssistant() {
                             min="0"
                             value={trip.elders}
                             onChange={handleChange}
+                            onKeyDown={(e) => {
+                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                         />
                     </div>
                 </div>
@@ -686,6 +766,11 @@ export default function PackingAssistant() {
                                     placeholder="Age"
                                     value={p.age}
                                     onChange={e => handleChange(e, i, "age")}
+                                    onKeyDown={(e) => {
+                                        if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 />
                             </div>
                             <div>
@@ -721,10 +806,10 @@ export default function PackingAssistant() {
                 </div>
             )}
             <div className="actions">
-                <button 
-                  onClick={generatePackingList} 
-                  disabled={isLoading} 
-                  style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                <button
+                    onClick={generatePackingList}
+                    disabled={isLoading}
+                    style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
                 >
                     {isLoading ? "⏳ Generating..." : "🚀 Generate Packing List"}
                 </button>

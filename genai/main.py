@@ -28,6 +28,11 @@ import requests
 from groq import Groq
 from pathlib import Path
 from datetime import datetime
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 # Resolve base directory to locate the .env file containing API keys
 BASE_DIR = Path(__file__).resolve().parent
@@ -97,6 +102,13 @@ class TripRequestGenerate(BaseModel):
     luggage: str
     travel_type: str
     people: str  # A flat string describing all travelers (e.g. "John, 25 years, Male")
+    temperature: float = None
+
+class PrefetchWeatherRequest(BaseModel):
+    """
+    Payload for fetching weather and correcting city names
+    """
+    location: str
 
 
 class DownloadRequest(BaseModel):
@@ -165,19 +177,33 @@ def get_avg_temperature(location: str):
     Returns:
         float | None: The temperature in Celsius if successful, or None if the request fails.
     """
+    # Check for test mode override
+    debug_force_temp = os.getenv("DEBUG_FORCE_TEMP")
+    if debug_force_temp is not None:
+        try:
+            override_temp = float(debug_force_temp)
+            logger.info(f"⚠️ DEBUG MODE: Overriding temperature to {override_temp}°C")
+            return override_temp
+        except ValueError:
+            pass
+
     try:
         url = f"https://api.weatherapi.com/v1/current.json?key={WEATHERAPI_API_KEY}&q={location}"
         res = requests.get(url, timeout=5)
         data = res.json()
         
-        # Check if request succeeded and "main" block (which contains temp) is returned
+        logger.info(f"🌡️ Weather API response: {json.dumps(data)}")
+        
+        # Check if request succeeded and "current" block is returned
         if res.status_code == 200 and "current" in data:
             temp = data["current"]["temp_c"]
+            logger.info(f"🌡️ Extracted temp: {temp}°C")
             return temp
         else:
+            logger.warning("🌡️ Weather API succeeded but no valid temperature found.")
             return None
     except Exception as e:
-        print("Weather API error:", e)
+        logger.error(f"Weather API error: {e}")
         return None
 
 def generate_packing_data(data: dict):
@@ -195,10 +221,13 @@ def generate_packing_data(data: dict):
     # Initialize the Groq client to call the LLM
     client = Groq(api_key=GROQ_API_KEY)
 
-    # Gather temperature to provide environmental context to the AI
-    temp = get_avg_temperature(data['location'])
-    temp_info = f"Average temperature: {temp}°C" if temp is not None else "Temperature unknown"
+    # Gather temperature exclusively from pre-fetched frontend data
+    temp = data.get('temperature')
+    if temp is None:
+        logger.warning(f"⚠️ No pre-fetched temp provided for {data['location']}. Relying on AI's general knowledge.")
 
+    temp_info = f"Average temperature: {temp}°C" if temp is not None else "Temperature unknown"
+    
     # Define the system prompt guiding the AI's behavior, establishing rules, and restricting the output format
     system_prompt = """
 ========================
@@ -370,6 +399,7 @@ Generate the JSON packing list now.
     
     try:
         content = res.choices[0].message.content
+        
         result = json.loads(content)
         
         # Ensure packing_list items are clean from stray bullet points or numbering if the AI still added them
@@ -389,6 +419,47 @@ Generate the JSON packing list now.
 # ==========================================
 # ### API ENDPOINTS ###
 # ==========================================
+
+@app.post("/prefetch-weather")
+def api_prefetch_weather(req: PrefetchWeatherRequest):
+    """
+    Endpoint to correct the city name using Groq, then prefetch the temperature.
+    """
+    client = Groq(api_key=GROQ_API_KEY)
+    
+    # 1. Correct city with Groq (Fastest model for simple NLP extraction)
+    prompt = f"""
+Extract and correct only the spelling of the city/destination from this text. 
+Do NOT replace the city with a larger city, the country, or any other location. 
+If the input is a country, leave it unchanged. 
+If the input is already a correct city name, return it as is. 
+Respond ONLY with the corrected city name, with no punctuation, extra words, or explanation.
+
+Additional instructions for temperature usage: 
+- Use the corrected city name to fetch weather.
+- If the weather API cannot provide a temperature for that city, try its nearby cities or, as a last resort, use the country-level temperature.
+- Under no circumstances should the AI change the city to a different major city or a country for temperature purposes.
+- Focus purely on spelling correction, not location substitution.
+
+Input: '{req.location}'
+"""    
+    try:
+        res = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+            max_tokens=20
+        )
+        corrected_city = res.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"Groq city correction error: {e}")
+        corrected_city = req.location # Fallback to original
+        
+    # 2. Fetch weather for the corrected city
+    temp = get_avg_temperature(corrected_city)
+    
+    return {"original": req.location, "location": corrected_city, "temperature": temp}
+
 
 @app.post("/generate-packing-list")
 @limiter.limit("5/minute") # Rate limiting endpoint to 5 requests per minute per IP
@@ -438,7 +509,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
+        port=int(os.environ.get("PORT", 5001)), # Changed to 5001 to prevent Node port collision
         reload=True
     )
 
