@@ -496,12 +496,12 @@ export default function PackingAssistant() {
                     onKeyDown={handleDestinationKeyDown}
                     onFocus={() => setIsDestinationFocused(true)}
                     onBlur={() => setIsDestinationFocused(false)}
-                    placeholder="Type city and press Enter for auto-correction"
+                    placeholder="Please enter a valid & correct city name for accurate & efficient packing recommendations."
                 />
                 {isCorrectingCity ? (
                     <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled. You may continue with the other fields.</small>
                 ) : isDestinationFocused ? (
-                    <small style={{ color: "#007bff" }}>💡 Please press Enter after you are done typing for auto-correction.</small>
+                    <small style={{ color: "#007bff" }}>💡 Please press Enter after you are done typing for auto-correction & You may continue with the other fields.</small>
                 ) : null}
 
                 <div className="grid">
