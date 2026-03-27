@@ -145,7 +145,7 @@ def create_docx(packing_list: list):
     doc = Document()
     
     # Add title and current date
-    doc.add_heading("Smart Packing Assistant", level=1)
+    doc.add_heading("🎒 Smart Packing Assistant", level=1)
     
     current_date = datetime.now().strftime("%Y-%m-%d")
     doc.add_paragraph(f"Generated on: {current_date}")
