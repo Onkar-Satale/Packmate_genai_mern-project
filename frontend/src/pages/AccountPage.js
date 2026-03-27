@@ -10,6 +10,9 @@ const AccountPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
     // ✅ delete modal state (ADDED)
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [tripToDelete, setTripToDelete] = useState(null);
@@ -18,16 +21,30 @@ const AccountPage = () => {
     // ---------------- FETCH TRIPS ----------------
     const fetchTrips = async () => {
         try {
+            setLoading(true);
+            setError("");
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                navigate("/login");
+                return;
+            }
 
-            const res = await axios.get("https://packmate-backend.onrender.com/api/trips", {
+            const API = process.env.REACT_APP_API_URL;
+            const res = await axios.get(`${API}/api/trips`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
             setTrips(Array.isArray(res.data) ? res.data : []);
         } catch (err) {
             console.error("Failed to fetch trips", err);
+            if (err.response?.status === 401) {
+                localStorage.removeItem("token");
+                navigate("/login");
+            } else {
+                setError("Failed to load trips. Please try again.");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -44,8 +61,9 @@ const AccountPage = () => {
         try {
             const token = localStorage.getItem("token");
 
+            const API = process.env.REACT_APP_API_URL;
             await axios.delete(
-                `https://packmate-backend.onrender.com/api/trips/${tripToDelete}`,
+                `${API}/api/trips/${tripToDelete}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -68,7 +86,7 @@ const AccountPage = () => {
 
     // ---------------- FILTER ----------------
     const filteredTrips = trips.filter((trip) =>
-        trip.destination?.toLowerCase().includes(searchTerm.toLowerCase())
+        (trip.destination || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // ---------------- AUTH CHECK ----------------
@@ -80,6 +98,8 @@ const AccountPage = () => {
         );
     }
 
+    if (loading) return <p>Loading trips...</p>;
+
     return (
         <div className="account-page-container">
             <div className="account-page-content">
@@ -89,6 +109,8 @@ const AccountPage = () => {
                         Welcome, {user.firstName} {user.lastName} !
                     </h1>
                 )}
+
+                {error && <p className="error-message" style={{ color: "red", textAlign: "center" }}>{error}</p>}
 
                 {/* Search */}
                 <div className="trip-search">
@@ -124,9 +146,9 @@ const AccountPage = () => {
                                 X
                             </button>
 
-                            <h3>🌍 {trip.destination}</h3>
-                            <p><strong>🗓️ Start Date:</strong> {trip.startDate}</p>
-                            <p><strong>🗓️ End Date:</strong> {trip.endDate}</p>
+                            <h3>🌍 {trip.destination || "Unknown"}</h3>
+                            <p><strong>🗓️ Start Date:</strong> {new Date(trip.startDate).toLocaleDateString()}</p>
+                            <p><strong>🗓️ End Date:</strong> {new Date(trip.endDate).toLocaleDateString()}</p>
                             <p><strong>🗓️ Total Days:</strong> {trip.totalDays}</p>
                             <p><strong>👤 Trip Type:</strong> {trip.tripType || "Solo"}</p>
                             <p><strong>✈️ Travel:</strong> {trip.travelMode || "Flight"}</p>

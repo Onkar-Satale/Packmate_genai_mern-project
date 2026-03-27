@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./PackingAssistant.css";
 import { useNavigate } from "react-router-dom";
+import DestinationInput from "../components/DestinationInput";
 
 export default function PackingAssistant() {
     const [trip, setTrip] = useState(
@@ -499,26 +500,15 @@ export default function PackingAssistant() {
             {/* TRIP BASICS */}
             <section className="card">
                 <h2>Trip Basics</h2>
-                <label>Destination</label>
-                <input
-                    name="destination"
-                    value={trip.destination}
-                    onChange={handleChange}
-                    onFocus={() => setIsDestinationFocused(true)}
-                    onBlur={() => {
-                        setIsDestinationFocused(false);
-                        handleCityCorrectionAndPrefetch(trip.destination);
-                    }}
-                    placeholder="Enter a valid city name."
+                
+                <DestinationInput 
+                    trip={trip}
+                    handleChange={handleChange}
+                    handleCityCorrectionAndPrefetch={handleCityCorrectionAndPrefetch}
+                    setIsDestinationFocused={setIsDestinationFocused}
+                    showTempWarning={showTempWarning}
+                    isCorrecting={isCorrectingCity}
                 />
-                {isCorrectingCity && (
-                    <small style={{ color: "#888", display: "block", marginTop: "5px" }}>⏳ Correcting your city name if misspelled... You can continue with your next fields.</small>
-                )}
-                {showTempWarning && (
-                    <small style={{ color: "#d9534f", display: "block", marginTop: "5px" }}>
-                        ⚠️ Temperature not available for this location. A generic list will be generated.
-                    </small>
-                )}
 
                 <div className="grid">
                     <div>

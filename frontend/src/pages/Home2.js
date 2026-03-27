@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import './Home2.css'; // Import the CSS file
-import img3 from '../assets/3.png';
-import img4 from '../assets/4.png';
-import img5 from '../assets/5.png';
+import feature1 from '../assets/3.png';
+import feature2 from '../assets/4.png';
+import feature3 from '../assets/5.png';
 
 
 
 const Home2 = () => {
-    const [visible, setVisible] = useState(false);
+    const [visibleSections, setVisibleSections] = useState([]);
+    const sectionsRef = React.useRef([]);
 
     useEffect(() => {
         const observerOptions = {
@@ -18,23 +19,32 @@ const Home2 = () => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
-                    setVisible(true);
+                    const index = sectionsRef.current.indexOf(entry.target);
+                    setVisibleSections((prev) => {
+                        if (!prev.includes(index)) {
+                            return [...prev, index];
+                        }
+                        return prev;
+                    });
                 }
             });
         }, observerOptions);
 
-        const sections = document.querySelectorAll(".fade-in");
-        sections.forEach((section) => observer.observe(section));
+        sectionsRef.current.forEach((section) => {
+            if (section) observer.observe(section);
+        });
 
         return () => {
-            sections.forEach((section) => observer.unobserve(section));
+            sectionsRef.current.forEach((section) => {
+                if (section) observer.unobserve(section);
+            });
         };
     }, []);
 
     return (
         <div>
             {/* Dark Section */}
-            <section className={`sectionDark fade-in ${visible ? 'animate' : ''}`}>
+            <section ref={(el) => (sectionsRef.current[0] = el)} className={`sectionDark fade-in ${visibleSections.includes(0) ? 'animate' : ''}`}>
                 <h1 className="heading">
                     Discover How Our AI Packing Assistant Works
                 </h1>
@@ -64,7 +74,7 @@ const Home2 = () => {
             </section>
 
             {/* Light Section */}
-            <section className={`sectionLight fade-in ${visible ? 'animate' : ''}`}>
+            <section ref={(el) => (sectionsRef.current[1] = el)} className={`sectionLight fade-in ${visibleSections.includes(1) ? 'animate' : ''}`}>
                 <h1 className="heading">Explore PackMate's Innovative Features</h1>
                 <p className="subHeading">
                     PackMate's AI Packing Assistant offers a seamless travel preparation
@@ -77,7 +87,7 @@ const Home2 = () => {
                 <div className="featureList">
                     {/* Feature 1 */}
                     <div className="featureItem">
-                        <img src={img3} alt="Personalized Packing" className="featureImage" />
+                        <img src={feature1} alt="Personalized Packing" className="featureImage" />
                         <h3 className="featureTitle">Personalized Packing Suggestions</h3>
                         <p className="featureDescription">
                             Our AI analyzes your travel details to provide a customized
@@ -89,7 +99,7 @@ const Home2 = () => {
                     {/* Feature 2 */}
                     <div className="featureItem">
 
-                        <img src={img4} alt="Weather-Based" className="featureImage" />
+                        <img src={feature2} alt="Weather-Based" className="featureImage" />
                         <h3 className="featureTitle">Weather-Based Recommendations</h3>
                         <p className="featureDescription">
                             Stay prepared with real-time weather updates that adjust your
@@ -100,7 +110,7 @@ const Home2 = () => {
 
                     {/* Feature 3 */}
                     <div className="featureItem">
-                        <img src={img5} alt="Interactive Packing" className="featureImage" />
+                        <img src={feature3} alt="Interactive Packing" className="featureImage" />
 
                         <h3 className="featureTitle">Interactive Packing Experience</h3>
                         <p className="featureDescription">

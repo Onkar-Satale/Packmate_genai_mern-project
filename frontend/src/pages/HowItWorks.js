@@ -51,12 +51,12 @@ export default function HowItWorks() {
     let step1 = (targetNum1 - num1) / 60;
     let step2 = (targetNum2 - num2) / 60;
 
+    let iterations = 0;
     const interval = setInterval(() => {
-      setNum1((prev) => {
-        let newNum = prev + step1;
-        if (newNum >= targetNum1) clearInterval(interval);
-        return Math.min(newNum, targetNum1);
-      });
+      iterations++;
+      if (iterations >= 60) clearInterval(interval);
+      
+      setNum1((prev) => Math.min(prev + step1, targetNum1));
       setNum2((prev) => Math.min(prev + step2, targetNum2));
     }, 36);
   };

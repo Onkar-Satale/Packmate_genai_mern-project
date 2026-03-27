@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import './ContactUs.css';
 import mapdis from '../assets/mapdis.png';
 import { AuthContext } from '../context/AuthContext';
@@ -31,8 +31,20 @@ export default function ContactUs() {
     }));
   };
 
+  const handleFocus = useCallback((field) => {
+    if (field === 'firstName' && userFirstName && !formData.firstName) {
+      setFormData(prev => ({ ...prev, firstName: userFirstName }));
+    } else if (field === 'lastName' && userLastName && !formData.lastName) {
+      setFormData(prev => ({ ...prev, lastName: userLastName }));
+    } else if (field === 'email' && userEmail && !formData.email) {
+      setFormData(prev => ({ ...prev, email: userEmail }));
+    }
+  }, [userFirstName, userLastName, userEmail, formData.firstName, formData.lastName, formData.email]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
 
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.message) {
       toast.error('Please fill all fields');
@@ -54,7 +66,7 @@ export default function ContactUs() {
           Accept: 'application/json'
         },
         body: JSON.stringify({
-          access_key: '7c30012f-a14c-4141-b8af-64707af29229',
+          access_key: process.env.REACT_APP_WEB3FORMS_KEY || '7c30012f-a14c-4141-b8af-64707af29229',
           subject: 'New Submission from PackMate Contact Form',
           email: formData.email,
           ...formData
@@ -73,10 +85,11 @@ export default function ContactUs() {
           message: ''
         });
       } else {
-        toast.error(result.message || 'Something went wrong!');
+        toast.error(result.message || 'Something went wrong with the API!');
       }
     } catch (err) {
-      toast.error('Something went wrong!');
+      console.error('Contact Form Error:', err);
+      toast.error('Network error or API failure. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -115,89 +128,92 @@ export default function ContactUs() {
         </div>
 
         <div className="form-image-grid">
-          <form onSubmit={handleSubmit} className="contact-form" noValidate>
+          <form onSubmit={handleSubmit} className="contact-form" noValidate aria-label="Contact form">
 
             <div className="flex">
               <div className="input-group">
-                <label className="label">First Name</label>
+                <label className="label" htmlFor="firstName">First Name</label>
                 <input
+                  id="firstName"
                   type="text"
                   name="firstName"
                   placeholder="First Name"
                   value={formData.firstName}
                   onChange={handleChange}
-                  onFocus={() => {
-                    if (userFirstName && !formData.firstName) {
-                      setFormData(prev => ({ ...prev, firstName: userFirstName }));
-                    }
-                  }}
+                  onFocus={() => handleFocus('firstName')}
                   className="input"
+                  aria-label="First Name"
+                  aria-required="true"
                 />
               </div>
 
               <div className="input-group">
-                <label className="label">Last Name</label>
+                <label className="label" htmlFor="lastName">Last Name</label>
                 <input
+                  id="lastName"
                   type="text"
                   name="lastName"
                   placeholder="Last Name"
                   value={formData.lastName}
                   onChange={handleChange}
-                  onFocus={() => {
-                    if (userLastName && !formData.lastName) {
-                      setFormData(prev => ({ ...prev, lastName: userLastName }));
-                    }
-                  }}
+                  onFocus={() => handleFocus('lastName')}
                   className="input"
+                  aria-label="Last Name"
+                  aria-required="true"
                 />
               </div>
             </div>
 
             <div className="flex">
               <div className="input-group">
-                <label className="label">Email Address</label>
+                <label className="label" htmlFor="email">Email Address</label>
                 <input
+                  id="email"
                   type="email"
                   name="email"
                   placeholder="abc@xyz.com"
                   value={formData.email}
                   onChange={handleChange}
-                  onFocus={() => {
-                    if (userEmail && !formData.email) {
-                      setFormData(prev => ({ ...prev, email: userEmail }));
-                    }
-                  }}
+                  onFocus={() => handleFocus('email')}
                   className="input"
+                  aria-label="Email Address"
+                  aria-required="true"
                 />
               </div>
 
               <div className="input-group">
-                <label className="label">Phone Number</label>
+                <label className="label" htmlFor="phone">Phone Number</label>
                 <input
+                  id="phone"
                   type="text"
                   name="phone"
                   placeholder="+91 1234567890"
                   value={formData.phone}
                   onChange={handleChange}
                   className="input"
+                  aria-label="Phone Number"
+                  aria-required="true"
                 />
               </div>
             </div>
 
             <div className="input-group">
-              <label className="label">Your Message</label>
+              <label className="label" htmlFor="message">Your Message</label>
               <textarea
+                id="message"
                 rows="5"
                 name="message"
                 placeholder="Your Message"
                 value={formData.message}
                 onChange={handleChange}
                 className="input"
+                aria-label="Your Message"
+                aria-required="true"
               />
             </div>
 
             <div className="submit-group">
-              <button type="submit" className="submit-btn" disabled={isSubmitting}>
+              <button type="submit" className="submit-btn" disabled={isSubmitting} aria-label={isSubmitting ? 'Sending Message' : 'Send Message'}>
                 {isSubmitting ? 'Sending...' : 'Send Message'}
               </button>
             </div>
@@ -205,7 +221,7 @@ export default function ContactUs() {
           </form>
 
           <div className="image-container">
-            <img src={mapdis} alt="Contact" className="contact-image" />
+            <img src={mapdis} alt="Map displaying our location" className="contact-image" />
           </div>
         </div>
       </main>

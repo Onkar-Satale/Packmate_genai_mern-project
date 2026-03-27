@@ -17,7 +17,7 @@ const Home4 = () => {
   const [loading, setLoading] = useState(false);
 
   // ✅ safe email extraction
-  const userEmail = typeof user === 'string' ? user : user?.email;
+  const userEmail = (typeof user === 'string' ? user : user?.email) || '';
 
   // animation logic (UNCHANGED)
   useEffect(() => {
