@@ -92,10 +92,14 @@ export default function PackingAssistant() {
     const [prefetchedTemp, setPrefetchedTemp] = useState(null);
     const [isCorrectingCity, setIsCorrectingCity] = useState(false);
     const [isDestinationFocused, setIsDestinationFocused] = useState(false);
+    const [lastCheckedCity, setLastCheckedCity] = useState("");
 
     const handleCityCorrectionAndPrefetch = async (city) => {
         if (!city) return;
+        if (city.toLowerCase().trim() === lastCheckedCity.toLowerCase().trim()) return;
+
         setIsCorrectingCity(true);
+        setLastCheckedCity(city);
 
         try {
             // Send typed city to our backend which uses Groq for instant correction & fetches weather simultaneously
@@ -106,6 +110,7 @@ export default function PackingAssistant() {
 
             setTrip(prev => ({ ...prev, destination: correctedCity }));
             setPrefetchedTemp(temp);
+            setLastCheckedCity(correctedCity);
 
         } catch (err) {
             console.error("City correction/prefetch failed:", err);
@@ -489,19 +494,44 @@ export default function PackingAssistant() {
             <section className="card">
                 <h2>Trip Basics</h2>
                 <label>Destination</label>
-                <input
-                    name="destination"
-                    value={trip.destination}
-                    onChange={handleChange}
-                    onKeyDown={handleDestinationKeyDown}
-                    onFocus={() => setIsDestinationFocused(true)}
-                    onBlur={() => setIsDestinationFocused(false)}
-                    placeholder="Please enter a valid & correct city name for accurate & efficient packing recommendations."
-                />
+                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                    <input
+                        name="destination"
+                        value={trip.destination}
+                        onChange={handleChange}
+                        onKeyDown={handleDestinationKeyDown}
+                        onFocus={() => setIsDestinationFocused(true)}
+                        onBlur={() => {
+                            setIsDestinationFocused(false);
+                            handleCityCorrectionAndPrefetch(trip.destination);
+                        }}
+                        placeholder="Please enter a valid & correct city name for accurate & efficient packing recommendations."
+                        enterKeyHint="done"
+                        style={{ flex: 1 }}
+                    />
+                    <button 
+                        type="button" 
+                        onClick={() => handleCityCorrectionAndPrefetch(trip.destination)}
+                        style={{ 
+                            padding: '0 15px', 
+                            backgroundColor: '#28a745', 
+                            color: 'white', 
+                            border: 'none', 
+                            borderRadius: '4px', 
+                            cursor: 'pointer', 
+                            whiteSpace: 'nowrap',
+                            opacity: (isCorrectingCity || !trip.destination) ? 0.7 : 1
+                        }}
+                        disabled={isCorrectingCity || !trip.destination}
+                        title="Verify city name"
+                    >
+                        {isCorrectingCity ? "..." : "Verify"}
+                    </button>
+                </div>
                 {isCorrectingCity ? (
-                    <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled. You may continue with the other fields.</small>
+                    <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled...</small>
                 ) : isDestinationFocused ? (
-                    <small style={{ color: "#007bff" }}>💡 Please press Enter after you are done typing for auto-correction & You may continue with the other fields.</small>
+                    <small style={{ color: "#007bff" }}>💡 You can press Enter, tap Verify, or just move to the next field for auto-correction.</small>
                 ) : null}
 
                 <div className="grid">
