@@ -178,15 +178,6 @@ def get_avg_temperature(location: str):
     Returns:
         float | None: The temperature in Celsius if successful, or None if the request fails.
     """
-    # Check for test mode override
-    debug_force_temp = os.getenv("DEBUG_FORCE_TEMP")
-    if debug_force_temp is not None:
-        try:
-            override_temp = float(debug_force_temp)
-            return override_temp
-        except ValueError:
-            pass
-
     try:
         url = f"https://api.weatherapi.com/v1/current.json?key={WEATHERAPI_API_KEY}&q={location}"
         res = requests.get(url, timeout=5)
