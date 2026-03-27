@@ -183,7 +183,6 @@ def get_avg_temperature(location: str):
     if debug_force_temp is not None:
         try:
             override_temp = float(debug_force_temp)
-            logger.debug(f"⚠️ DEBUG MODE: Overriding temperature to {override_temp}°C")
             return override_temp
         except ValueError:
             pass
@@ -196,10 +195,8 @@ def get_avg_temperature(location: str):
         # Check if request succeeded and "current" block is returned
         if res.status_code == 200 and "current" in data:
             temp = data["current"]["temp_c"]
-            logger.debug(f"🌡️ Extracted temp: {temp}°C")
             return temp
         else:
-            logger.warning("🌡️ Weather API succeeded but no valid temperature found.")
             return None
     except Exception as e:
         logger.error(f"Weather API error: {e}")
@@ -222,11 +219,8 @@ def generate_packing_data(data: dict):
 
     # Gather temperature exclusively from pre-fetched frontend data
     temp = data.get('temperature')
-    if temp is None:
-        logger.warning(f"⚠️ No pre-fetched temp provided for {data['location']}. Relying on AI's general knowledge.")
 
     temp_info = f"Average temperature: {temp}°C" if temp is not None else "Temperature unknown"
-    logger.info(f"🧠 Temp being sent to AI for Packing List: {temp_info}")
     
     # Define the system prompt guiding the AI's behavior, establishing rules, and restricting the output format
     system_prompt = """
@@ -459,18 +453,12 @@ Rules:
         else:
             corrected_city = raw_response.strip(".,'\"")
             
-        logger.info(f"✅ City Corrected (Groq): '{req.location}' -> '{corrected_city}'")
     except Exception as e:
         logger.error(f"Groq city correction error: {e}")
         corrected_city = req.location # Fallback to original
         
     # 2. Fetch weather for the corrected city
     temp = get_avg_temperature(corrected_city)
-    
-    if temp is None:
-        logger.warning(f"⚠️ Could not fetch temperature for {corrected_city}, proceeding with general temperature")
-        
-    logger.info(f"🌡️ Temperature fetched for {corrected_city}: {temp}°C")
     
     return {"original": req.location, "location": corrected_city, "temperature": temp}
 
@@ -495,7 +483,6 @@ def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
     
     # Check cache first to save AI calls
     if cache_key in generation_cache:
-        logger.info(f"✅ Returned from Cache: {data['location']}")
         return generation_cache[cache_key]
 
     ai_result = generate_packing_data(data)

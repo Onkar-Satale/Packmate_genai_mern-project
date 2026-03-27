@@ -93,6 +93,7 @@ export default function PackingAssistant() {
     const [isCorrectingCity, setIsCorrectingCity] = useState(false);
     const [isDestinationFocused, setIsDestinationFocused] = useState(false);
     const [lastCheckedCity, setLastCheckedCity] = useState("");
+    const [showTempWarning, setShowTempWarning] = useState(false);
 
     const handleCityCorrectionAndPrefetch = async (city) => {
         if (!city) return;
@@ -112,9 +113,20 @@ export default function PackingAssistant() {
             setPrefetchedTemp(temp);
             setLastCheckedCity(correctedCity);
 
+            if (temp === null) {
+                setShowTempWarning(true);
+                setTimeout(() => setShowTempWarning(false), 5000);
+            } else {
+                setShowTempWarning(false);
+            }
+
         } catch (err) {
             console.error("City correction/prefetch failed:", err);
             // fallback gracefully
+            setPrefetchedTemp(null);
+            setLastCheckedCity(city);
+            setShowTempWarning(true);
+            setTimeout(() => setShowTempWarning(false), 5000);
         } finally {
             setIsCorrectingCity(false);
         }
@@ -344,7 +356,6 @@ export default function PackingAssistant() {
                     },
                 }
             );
-            console.log(trip.weatherSensitivity, trip.activityLevel);
 
 
             setFormError("✅ Trip saved successfully!");
@@ -503,7 +514,7 @@ export default function PackingAssistant() {
                 {isCorrectingCity && (
                     <small style={{ color: "#888", display: "block", marginTop: "5px" }}>⏳ Correcting your city name if misspelled... You can continue with your next fields.</small>
                 )}
-                {lastCheckedCity && !isCorrectingCity && prefetchedTemp === null && (
+                {showTempWarning && (
                     <small style={{ color: "#d9534f", display: "block", marginTop: "5px" }}>
                         ⚠️ Temperature not available for this location. A generic list will be generated.
                     </small>
