@@ -1,6 +1,6 @@
 import './Navbar.css';
 import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -11,45 +11,82 @@ const Navbar = () => {
     user ? navigate('/account') : navigate('/login');
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const navItems = [
+    'Home',
+    'How it works',
+    'Features',
+    'About Us',
+    'Contact Us'
+  ];
+
   return (
     <div className="navbar">
 
-      {/* 🔥 TOP ROW (LOGO + BUTTONS SAME LINE) */}
+      {/* 🔥 TOP ROW */}
       <div className="navbar-top">
+
         <div className="navbar-left">
-          <span className="avatar-circle" onClick={handleLogoClick}>
+          <span
+            className="avatar-circle"
+            onClick={handleLogoClick}
+            role="button"
+            aria-label="User Profile"
+          >
             {user?.firstName
               ? user.firstName.charAt(0).toUpperCase()
               : user?.email
                 ? user.email.charAt(0).toUpperCase()
-                : ''}
+                : 'U'}
           </span>
+
           <span className="website-name">PackMate</span>
         </div>
 
         <div className="navbar-right">
           {!user ? (
             <>
-              <Link to="/login"><button className="auth-btn">Login</button></Link>
-              <Link to="/signup"><button className="auth-btn">Sign Up</button></Link>
+              <NavLink to="/login">
+                <button className="auth-btn">Login</button>
+              </NavLink>
+
+              <NavLink to="/signup">
+                <button className="auth-btn">Sign Up</button>
+              </NavLink>
             </>
           ) : (
-            <button className="auth-btn" onClick={logout}>Logout</button>
+            <button className="auth-btn" onClick={handleLogout}>
+              Logout
+            </button>
           )}
         </div>
+
       </div>
 
-      {/* 🔽 LINKS ROW */}
+      {/* 🔽 NAV LINKS */}
       <div className="navbar-center">
-        {['Home', 'How it works', 'Features', 'About Us', 'Contact Us'].map((text, i) => (
-          <Link
-            key={i}
-            to={text === 'Home' ? '/' : `/${text.toLowerCase().replace(/\s+/g, '-')}`}
-            className="nav-link"
-          >
-            {text}
-          </Link>
-        ))}
+        {navItems.map((text, i) => {
+          const path =
+            text === 'Home'
+              ? '/'
+              : `/${text.toLowerCase().replace(/\s+/g, '-')}`;
+
+          return (
+            <NavLink
+              key={i}
+              to={path}
+              className={({ isActive }) =>
+                isActive ? 'nav-link active' : 'nav-link'
+              }
+            >
+              {text}
+            </NavLink>
+          );
+        })}
       </div>
 
     </div>

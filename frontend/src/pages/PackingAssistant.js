@@ -501,7 +501,12 @@ export default function PackingAssistant() {
                     placeholder="Enter a valid city name."
                 />
                 {isCorrectingCity && (
-                    <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled... You can continue with your next fields.</small>
+                    <small style={{ color: "#888", display: "block", marginTop: "5px" }}>⏳ Correcting your city name if misspelled... You can continue with your next fields.</small>
+                )}
+                {lastCheckedCity && !isCorrectingCity && prefetchedTemp === null && (
+                    <small style={{ color: "#d9534f", display: "block", marginTop: "5px" }}>
+                        ⚠️ Temperature not available for this location. A generic list will be generated.
+                    </small>
                 )}
 
                 <div className="grid">

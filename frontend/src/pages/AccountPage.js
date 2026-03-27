@@ -90,9 +90,6 @@ const AccountPage = () => {
                     </h1>
                 )}
 
-
-
-
                 {/* Search */}
                 <div className="trip-search">
                     <input

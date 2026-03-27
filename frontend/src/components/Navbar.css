@@ -76,6 +76,9 @@
   background-color: white;
   color: blue;
   border: 1px solid blue;
+  text-decoration: underline;
+
+
 }
 
 /* ================= LINKS ROW ================= */
@@ -98,6 +101,8 @@
 
 .nav-link:hover {
   color: blue;
+  text-decoration: underline;
+
 }
 
 /* ================= MOBILE RESPONSIVE ================= */
@@ -200,4 +205,8 @@
     font-size: 14px;
     border-radius: 16px;
   }
+}
+
+.active {
+  color: blue;
 }

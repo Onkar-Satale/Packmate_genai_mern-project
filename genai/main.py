@@ -54,6 +54,9 @@ if not GROQ_API_KEY:
 # ### APP INITIALIZATION & MIDDLEWARE ###
 # ==========================================
 
+# Simple in-memory cache for generated packing lists to prevent AI spam attacks
+generation_cache = {}
+
 # Initialize the FastAPI application
 app = FastAPI(title="🎒Smart Packing Assistant API")
 
@@ -426,12 +429,21 @@ def api_prefetch_weather(req: PrefetchWeatherRequest):
     
     # 1. Correct city with Groq (Fastest model for simple NLP extraction)
     prompt = f"""
-Fix the spelling of this city or country: '{req.location}'
+You are a strict location corrector.
+
+Task:
+Fix the spelling of the given city or country name.
+
+Input:
+{req.location}
+
 Rules:
-1. ONLY return the final fixed location name.
-2. DO NOT include any punctuation, prefixes, apologies, or extra words.
-3. If it is already correct, just return it.
-"""    
+1. Return ONLY the corrected name.
+2. Do NOT add any extra words, punctuation, or explanation.
+3. Output must be a single valid city or country name.
+4. If input is already correct, return it unchanged.
+5. If the input is invalid or cannot be corrected, return exactly: INVALID
+""" 
     try:
         res = client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -454,6 +466,10 @@ Rules:
         
     # 2. Fetch weather for the corrected city
     temp = get_avg_temperature(corrected_city)
+    
+    if temp is None:
+        logger.warning(f"⚠️ Could not fetch temperature for {corrected_city}, proceeding with general temperature")
+        
     logger.info(f"🌡️ Temperature fetched for {corrected_city}: {temp}°C")
     
     return {"original": req.location, "location": corrected_city, "temperature": temp}
@@ -475,7 +491,16 @@ def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
       }
     """
     data = trip.dict()
+    cache_key = str(data)
+    
+    # Check cache first to save AI calls
+    if cache_key in generation_cache:
+        logger.info(f"✅ Returned from Cache: {data['location']}")
+        return generation_cache[cache_key]
+
     ai_result = generate_packing_data(data)
+    generation_cache[cache_key] = ai_result
+    
     return ai_result
 
 @app.post("/download-packing-list")
