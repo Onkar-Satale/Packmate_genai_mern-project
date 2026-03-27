@@ -120,12 +120,7 @@ export default function PackingAssistant() {
         }
     };
 
-    const handleDestinationKeyDown = (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            handleCityCorrectionAndPrefetch(trip.destination);
-        }
-    };
+    // Triggered automatically on blur without enter key
 
     const handleChange = (e, idx = null, field = null) => {
         let { name, value } = e.target;
@@ -494,45 +489,20 @@ export default function PackingAssistant() {
             <section className="card">
                 <h2>Trip Basics</h2>
                 <label>Destination</label>
-                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                    <input
-                        name="destination"
-                        value={trip.destination}
-                        onChange={handleChange}
-                        onKeyDown={handleDestinationKeyDown}
-                        onFocus={() => setIsDestinationFocused(true)}
-                        onBlur={() => {
-                            setIsDestinationFocused(false);
-                            handleCityCorrectionAndPrefetch(trip.destination);
-                        }}
-                        placeholder="Please enter a valid & correct city name for accurate & efficient packing recommendations."
-                        enterKeyHint="done"
-                        style={{ flex: 1 }}
-                    />
-                    <button 
-                        type="button" 
-                        onClick={() => handleCityCorrectionAndPrefetch(trip.destination)}
-                        style={{ 
-                            padding: '0 15px', 
-                            backgroundColor: '#28a745', 
-                            color: 'white', 
-                            border: 'none', 
-                            borderRadius: '4px', 
-                            cursor: 'pointer', 
-                            whiteSpace: 'nowrap',
-                            opacity: (isCorrectingCity || !trip.destination) ? 0.7 : 1
-                        }}
-                        disabled={isCorrectingCity || !trip.destination}
-                        title="Verify city name"
-                    >
-                        {isCorrectingCity ? "..." : "Verify"}
-                    </button>
-                </div>
-                {isCorrectingCity ? (
-                    <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled...</small>
-                ) : isDestinationFocused ? (
-                    <small style={{ color: "#007bff" }}>💡 You can press Enter, tap Verify, or just move to the next field for auto-correction.</small>
-                ) : null}
+                <input
+                    name="destination"
+                    value={trip.destination}
+                    onChange={handleChange}
+                    onFocus={() => setIsDestinationFocused(true)}
+                    onBlur={() => {
+                        setIsDestinationFocused(false);
+                        handleCityCorrectionAndPrefetch(trip.destination);
+                    }}
+                    placeholder="City Name"
+                />
+                {isCorrectingCity && (
+                    <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled... You can continue with your next fields.</small>
+                )}
 
                 <div className="grid">
                     <div>
