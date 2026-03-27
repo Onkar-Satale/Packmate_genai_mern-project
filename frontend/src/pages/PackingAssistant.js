@@ -498,7 +498,7 @@ export default function PackingAssistant() {
                         setIsDestinationFocused(false);
                         handleCityCorrectionAndPrefetch(trip.destination);
                     }}
-                    placeholder="City Name"
+                    placeholder="Enter a valid city name."
                 />
                 {isCorrectingCity && (
                     <small style={{ color: "#888" }}>⏳ Correcting your city name if misspelled... You can continue with your next fields.</small>
