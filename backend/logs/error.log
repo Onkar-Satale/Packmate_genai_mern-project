@@ -5,3 +5,5 @@
 {"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-03-31 14:45:55"}
 {"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-03-31 15:42:23"}
 {"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-03-31 15:42:23"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-03-31 16:55:32"}
+{"level":"error","message":"401 - No refresh token available - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-03-31 16:55:32"}

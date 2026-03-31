@@ -121,9 +121,11 @@ const AccountPage = () => {
 
                 <br></br>
 
-                {filteredTrips.length === 0 && (
+                {trips.length === 0 ? (
                     <p>You haven't planned any trips yet.</p>
-                )}
+                ) : filteredTrips.length === 0 ? (
+                    <p>No results found for "{searchTerm}".</p>
+                ) : null}
 
                 <div className="trip-cards">
                     {filteredTrips.map((trip) => (
