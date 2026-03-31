@@ -5,10 +5,14 @@ import img15 from '../assets/15.png';
 import img16 from '../assets/16.png';
 
 export default function HowItWorks() {
-  const introRef = useRef(null);
+  const intro1Ref = useRef(null);
   const detailsRef = useRef(null);
-  const [introVisible, setIntroVisible] = useState(false);
+  const intro2Ref = useRef(null);
+  
+  const [intro1Visible, setIntro1Visible] = useState(false);
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const [intro2Visible, setIntro2Visible] = useState(false);
+  
   const [num1, setNum1] = useState(0); // For 95%
   const [num2, setNum2] = useState(0); // For 1000+
 
@@ -21,22 +25,26 @@ export default function HowItWorks() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          if (entry.target === introRef.current) {
-            setIntroVisible(true);
+          if (entry.target === intro1Ref.current) {
+            setIntro1Visible(true);
             animateNumbers(); // Start number animation when intro section is visible
           } else if (entry.target === detailsRef.current) {
             setDetailsVisible(true);
+          } else if (entry.target === intro2Ref.current) {
+            setIntro2Visible(true);
           }
         }
       });
     }, observerOptions);
 
-    if (introRef.current) observer.observe(introRef.current);
+    if (intro1Ref.current) observer.observe(intro1Ref.current);
     if (detailsRef.current) observer.observe(detailsRef.current);
+    if (intro2Ref.current) observer.observe(intro2Ref.current);
 
     return () => {
-      if (introRef.current) observer.unobserve(introRef.current);
+      if (intro1Ref.current) observer.unobserve(intro1Ref.current);
       if (detailsRef.current) observer.unobserve(detailsRef.current);
+      if (intro2Ref.current) observer.unobserve(intro2Ref.current);
     };
   }, []);
 
@@ -67,18 +75,15 @@ export default function HowItWorks() {
     }, 16); // Approximately 60fps, 1000ms / 60 = ~16ms
   };
 
-  // Redirect function when "Try Now" button is clicked
-  const handleClick = () => {
-    window.location.href = 'http://localhost:8501';
-  };
+
 
   return (
     <div className="how-it-works-container">
       <main className="main-content">
         {/* Intro Section */}
         <section
-          ref={introRef}
-          className={`intro-section ${introVisible ? 'animate' : ''}`}
+          ref={intro1Ref}
+          className={`intro-section ${intro1Visible ? 'animate' : ''}`}
         >
           <div className="intro-content">
             <img src={img14} alt="AI Packing Assistant" className="intro-image" />
@@ -129,8 +134,8 @@ export default function HowItWorks() {
         </section>
 
         <section
-          ref={introRef}
-          className={`intro-section ${introVisible ? 'animate' : ''}`}
+          ref={intro2Ref}
+          className={`intro-section ${intro2Visible ? 'animate' : ''}`}
         >
           <div className="intro-content">
             <img src={img16} alt="AI Packing Assistant" className="intro-image" />

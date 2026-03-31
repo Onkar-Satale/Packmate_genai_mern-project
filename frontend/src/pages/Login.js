@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_URL } from '../config';
+import { useNavigate, Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
+import api from '../api/axiosConfig';
 import './Login.css';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContainer, toast } from 'react-toastify';
@@ -9,52 +10,93 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const { login } = useContext(AuthContext);
 
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Handle input change
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  // Validate inputs
+  const validateForm = () => {
+    const { email, password } = formData;
+
+    if (!email || !password) {
+      toast.error("All fields are required");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Invalid email format");
+      return false;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      toast.error("Please fill both fields");
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
 
     try {
-      const res = await axios.post(`${API_URL}/login`, { email, password });
+      const res = await api.post(`/login`, formData);
 
-      // Save all auth data to localStorage
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('email', res.data.email);
-      localStorage.setItem('firstName', res.data.firstName);
-      localStorage.setItem('lastName', res.data.lastName);
+      const { token, email, firstName, lastName } = res.data.data;
 
-      // ✅ Update AuthContext with full user info including token
-      login({
-        token: res.data.token,
-        email: res.data.email,
-        firstName: res.data.firstName,
-        lastName: res.data.lastName
-      });
+      // Save user data
+      localStorage.setItem("token", res.data.data.token);
+      localStorage.setItem("userEmail", res.data.data.email);
+      localStorage.setItem('firstName', firstName);
+      localStorage.setItem('lastName', lastName);
+
+      // Update global auth state
+      login({ token, email, firstName, lastName });
 
       toast.success("Login successful! Redirecting...");
 
-      // Redirect user
+      // Handle redirect
       const redirectUrl = localStorage.getItem('redirectAfterLogin');
-      if (redirectUrl) {
-        localStorage.removeItem('redirectAfterLogin');
-        setTimeout(() => { window.location.href = redirectUrl; }, 1500);
-      } else {
-        setTimeout(() => { navigate('/'); }, 1500); // default: go Home page
-      }
+
+      setTimeout(() => {
+        if (redirectUrl) {
+          localStorage.removeItem('redirectAfterLogin');
+          window.location.href = redirectUrl;
+        } else {
+          navigate('/');
+        }
+      }, 1200);
 
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Login failed");
+      console.error("Login Error:", err);
+
+      if (err.response) {
+        toast.error(err.response.data?.message || "Invalid credentials");
+      } else if (err.request) {
+        toast.error("Server not responding. Try again later.");
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -63,32 +105,54 @@ export default function Login() {
   return (
     <div className="login-page-wrap">
       <ToastContainer position="top-right" autoClose={3000} />
+
       <div className="login-container">
         <h2>Login to Your Account</h2>
+
         <form onSubmit={handleLogin} className="login-form">
+          
           <label>Email</label>
           <input
             type="email"
+            name="email"
             placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
+            required
           />
 
           <label>Password</label>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="password-wrapper" style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              style={{ width: '100%', paddingRight: '40px' }}
+            />
+            <span 
+              onClick={() => setShowPassword(!showPassword)}
+              style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#666' }}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
+          </div>
 
-          <button type="submit" className="login-btn" disabled={isLoading}>
+          <button
+            type="submit"
+            className="login-btn"
+            disabled={isLoading}
+          >
             {isLoading ? 'Logging you in...' : 'Login'}
           </button>
         </form>
 
         <footer className="footer-login">
-          <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+          <p>
+            Don't have an account? <Link to="/signup">Sign Up</Link>
+          </p>
         </footer>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useCallback } from 'react';
+import React, { useState, useContext, useCallback, useEffect } from 'react';
 import './ContactUs.css';
 import mapdis from '../assets/mapdis.png';
 import { AuthContext } from '../context/AuthContext';
@@ -22,6 +22,23 @@ export default function ContactUs() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Restore form data on refresh, clear on unmount (when leaving the page)
+  useEffect(() => {
+    const savedContactForm = sessionStorage.getItem("contactFormData");
+    if (savedContactForm) {
+      setFormData(prev => ({ ...prev, ...JSON.parse(savedContactForm) }));
+    }
+    
+    return () => {
+      sessionStorage.removeItem("contactFormData");
+    };
+  }, []);
+
+  // Save form data to sessionStorage exactly whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem("contactFormData", JSON.stringify(formData));
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

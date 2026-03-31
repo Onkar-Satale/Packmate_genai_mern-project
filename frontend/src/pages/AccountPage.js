@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
-import axios from "axios";
+
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import api from "../api/axiosConfig";
 import "./AccountPage.css";
 
 const AccountPage = () => {
@@ -29,12 +30,9 @@ const AccountPage = () => {
                 return;
             }
 
-            const API = process.env.REACT_APP_API_URL;
-            const res = await axios.get(`${API}/api/trips`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await api.get('/trips');
 
-            setTrips(Array.isArray(res.data) ? res.data : []);
+            setTrips(res.data.data || []);
         } catch (err) {
             console.error("Failed to fetch trips", err);
             if (err.response?.status === 401) {
@@ -61,11 +59,7 @@ const AccountPage = () => {
         try {
             const token = localStorage.getItem("token");
 
-            const API = process.env.REACT_APP_API_URL;
-            await axios.delete(
-                `${API}/api/trips/${tripToDelete}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.delete(`/trips/${tripToDelete}`);
 
             // ✅ remove card instantly
             setTrips((prev) => prev.filter((t) => t._id !== tripToDelete));

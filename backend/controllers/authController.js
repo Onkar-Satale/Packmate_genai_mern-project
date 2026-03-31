@@ -1,86 +1,107 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const authService = require("../services/authService");
+const ApiError = require("../utils/ApiError");
 
-// ---------- REGISTER ----------
-exports.register = async (req, res) => {
+const setRefreshCookie = (res, token) => {
+  res.cookie("refreshToken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, 
+  });
+};
+
+exports.register = async (req, res, next) => {
   try {
-    console.log("Register request body:", req.body);
-
     const { email, password, firstName, lastName } = req.body;
+    
+    const existingUser = await authService.findUserByEmail(email);
+    if (existingUser) return next(new ApiError(400, "User already exists"));
 
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+    const user = await authService.registerUser({ firstName, lastName, email, password });
+    
+    const token = authService.generateAuthToken(user._id);
+    const refreshToken = authService.generateRefreshToken(user._id);
+    await authService.storeRefreshToken(user._id, refreshToken);
+    
+    setRefreshCookie(res, refreshToken);
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "User already exists" });
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = await User.create({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword
-    });
-
-    // Generate token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    // Return full info
     res.status(201).json({
-      message: "User registered successfully",
-      token,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName
+      success: true,
+      data: {
+        token,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
     });
-
   } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
-// LOGIN
-exports.login = async (req, res) => {
+
+exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    const user = await authService.findUserByEmail(email);
+    if (!user) return next(new ApiError(401, "Invalid credentials"));
 
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    const isMatch = await authService.verifyPassword(password, user);
+    if (!isMatch) return next(new ApiError(401, "Invalid credentials"));
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = authService.generateAuthToken(user._id);
+    const refreshToken = authService.generateRefreshToken(user._id);
+    await authService.storeRefreshToken(user._id, refreshToken);
+    
+    setRefreshCookie(res, refreshToken);
 
-    // ✅ Include firstName & lastName
     res.json({
-      token,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName
+      success: true,
+      data: {
+        token,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
     });
-
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    next(err);
+  }
+};
+
+exports.refreshToken = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) return next(new ApiError(401, "No refresh token available"));
+    
+    const decoded = authService.verifyRefreshToken(refreshToken);
+    const user = await authService.findUserById(decoded.userId).select("+refreshToken");
+    if (!user || user.refreshToken !== refreshToken) {
+      return next(new ApiError(401, "Invalid refresh token"));
+    }
+    
+    const token = authService.generateAuthToken(user._id);
+    res.json({ success: true, data: { token } });
+  } catch(err) {
+    next(new ApiError(401, "Refresh token expired or invalid"));
+  }
+};
+
+exports.logout = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.cookies;
+    if (refreshToken) {
+      try {
+        const decoded = authService.verifyRefreshToken(refreshToken);
+        await authService.clearRefreshToken(decoded.userId);
+      } catch (e) {
+        // Ignore token expiration issues during logout
+      }
+    }
+    res.clearCookie("refreshToken");
+    res.json({ success: true, message: "Logged out successfully" });
+  } catch(err) {
+    next(err);
   }
 };
 

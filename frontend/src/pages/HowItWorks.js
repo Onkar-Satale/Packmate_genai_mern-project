@@ -86,7 +86,7 @@ export default function HowItWorks() {
         const { latitude, longitude } = coords;
         setCoords({ latitude, longitude });
         try {
-          const apiKey = "baf9968e5b5b41e28025d2585658b52d";
+          const apiKey = process.env.REACT_APP_OPENCAGE_API_KEY || "baf9968e5b5b41e28025d2585658b52d";
           const response = await fetch(
             `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=${apiKey}`
           );

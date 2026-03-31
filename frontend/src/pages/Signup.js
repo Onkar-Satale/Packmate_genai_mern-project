@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_URL } from '../config';
+import { useNavigate, Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
+import api from '../api/axiosConfig';
 import './Login.css';
 import { AuthContext } from '../context/AuthContext';
 
@@ -12,70 +13,104 @@ export default function Signup() {
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
 
-    // 🔹 ADDED first & last name
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    });
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const handleSignup = async (e) => {
-        e.preventDefault();
+    // Handle input change
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    // Validate inputs
+    const validateForm = () => {
+        const { firstName, lastName, email, password, confirmPassword } = formData;
 
         if (!firstName || !lastName || !email || !password || !confirmPassword) {
             toast.error("⚠️ Please fill all fields");
-            return;
+            return false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            toast.error("❌ Invalid email format");
+            return false;
+        }
+
+        if (password.length < 6) {
+            toast.error("❌ Password must be at least 6 characters");
+            return false;
+        }
+
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}/;
+        if (!strongPasswordRegex.test(password)) {
+            toast.error("❌ Password must contain upper, lower, and number");
+            return false;
         }
 
         if (password !== confirmPassword) {
             toast.error("❌ Passwords do not match");
-            return;
+            return false;
         }
+
+        return true;
+    };
+
+    const handleSignup = async (e) => {
+        e.preventDefault();
+
+        if (!validateForm()) return;
 
         setIsLoading(true);
 
         try {
-            const res = await axios.post(`${API_URL}/register`, {
-                firstName,
-                lastName,
-                email,
-                password
-            });
+            const { confirmPassword, ...submitData } = formData;
+            const res = await api.post(`/register`, submitData);
 
-            // 🔹 Store auth data
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('email', res.data.email);
-            localStorage.setItem('firstName', res.data.firstName);
-            localStorage.setItem('lastName', res.data.lastName);
+            const { token, email, firstName, lastName } = res.data.data;
+
+            localStorage.setItem("token", res.data.data.token);
+            localStorage.setItem("userEmail", res.data.data.email);
+            localStorage.setItem('firstName', firstName);
+            localStorage.setItem('lastName', lastName);
 
             // 🔹 Update AuthContext
-            login({
-                token: res.data.token,
-                email: res.data.email,
-                firstName: res.data.firstName,
-                lastName: res.data.lastName
-            });
-
+            login({ token, email, firstName, lastName });
 
             toast.success("🎉 Signup successful! Redirecting...");
 
             const redirectUrl = localStorage.getItem('redirectAfterLogin');
-            if (redirectUrl) {
-                localStorage.removeItem('redirectAfterLogin');
-                setTimeout(() => {
+            
+            setTimeout(() => {
+                if (redirectUrl) {
+                    localStorage.removeItem('redirectAfterLogin');
                     window.location.href = redirectUrl;
-                }, 1500);
-            } else {
-                setTimeout(() => {
+                } else {
                     navigate('/');
-                }, 1500);
-            }
+                }
+            }, 1200);
 
         } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data?.message || "Signup failed");
+            console.error("Signup Error:", err);
+            
+            if (err.response) {
+                toast.error(err.response.data?.message || "Signup failed");
+            } else if (err.request) {
+                toast.error("Server not responding. Try again later.");
+            } else {
+                toast.error("Something went wrong");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -89,56 +124,86 @@ export default function Signup() {
 
                 <form onSubmit={handleSignup} className="login-form">
 
-                    {/* 🔹 ADDED First Name */}
                     <label>First Name</label>
                     <input
                         type="text"
+                        name="firstName"
                         placeholder="Enter your first name"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        required
                     />
 
-                    {/* 🔹 ADDED Last Name */}
                     <label>Last Name</label>
                     <input
                         type="text"
+                        name="lastName"
                         placeholder="Enter your last name"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        required
                     />
 
                     <label>Email</label>
                     <input
                         type="email"
+                        name="email"
                         placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
                     />
 
                     <label>Password</label>
-                    <input
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <div className="password-wrapper" style={{ position: 'relative' }}>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            placeholder="Enter your password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            style={{ width: '100%', paddingRight: '40px' }}
+                        />
+                        <span 
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#666' }}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
 
                     <label>Confirm Password</label>
-                    <input
-                        type="password"
-                        placeholder="Confirm your password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
+                    <div className="password-wrapper" style={{ position: 'relative' }}>
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            placeholder="Confirm your password"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            required
+                            style={{ width: '100%', paddingRight: '40px' }}
+                        />
+                        <span 
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#666' }}
+                        >
+                            {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
 
-                    <button type="submit" className="login-btn" disabled={isLoading}>
+                    <button 
+                        type="submit" 
+                        className="login-btn" 
+                        disabled={isLoading}
+                    >
                         {isLoading ? 'Signing you up...' : 'Sign Up'}
                     </button>
                 </form>
 
                 <footer className="footer-login">
                     <p>
-                        Already have an account? <a href="/login">Login</a>
+                        Already have an account? <Link to="/login">Login</Link>
                     </p>
                 </footer>
             </div>

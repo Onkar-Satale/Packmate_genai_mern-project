@@ -1,19 +1,19 @@
 const mongoose = require("mongoose");
 
 const TravelerSchema = new mongoose.Schema({
-  name: { type: String },  // <-- add this
-  age: Number,
-  gender: String,
-  medicalNotes: String
+  name: { type: String, trim: true },
+  age: { type: Number, min: 0 },
+  gender: { type: String, trim: true },
+  medicalNotes: { type: String, trim: true }
 });
 
 const PackingItemSchema = new mongoose.Schema({
-  name: String,
-  quantity: String
+  name: { type: String, trim: true },
+  quantity: { type: String, trim: true }
 });
 
 const PackingCategorySchema = new mongoose.Schema({
-  category: String,
+  category: { type: String, trim: true },
   items: [PackingItemSchema]
 });
 
@@ -21,39 +21,39 @@ const TripSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true
+    required: [true, "Trip must belong to a user"]
   },
 
   // -------- Trip Basics --------
-  destination: { type: String, required: true },
-  startDate: String,
-  endDate: String,
-  totalDays: Number,
-  tripType: String,
+  destination: { type: String, required: [true, "Destination is required"], trim: true },
+  startDate: { type: Date, required: [true, "Start date is required"] },
+  endDate: { type: Date, required: [true, "End date is required"] },
+  totalDays: { type: Number, min: 1 },
+  tripType: { type: String, trim: true },
 
   // -------- Travel & Stay --------
-  travelMode: String,
-  accommodation: String,
-  roomType: String,
-  laundry: Boolean,
-  budget: String,
+  travelMode: { type: String, trim: true },
+  accommodation: { type: String, trim: true },
+  roomType: { type: String, trim: true },
+  laundry: { type: Boolean, default: false },
+  budget: { type: String, trim: true },
 
   // -------- Lifestyle --------
-  weatherSensitivity: String,
-  activityLevel: String,
-  shopping: Boolean,
-  photographyGear: Boolean,
-  workLaptop: Boolean,
+  weatherSensitivity: { type: String, default: "Normal", trim: true },
+  activityLevel: { type: String, default: "Moderate", trim: true },
+  shopping: { type: Boolean, default: false },
+  photographyGear: { type: Boolean, default: false },
+  workLaptop: { type: Boolean, default: false },
 
   // -------- Food & Health --------
-  foodPreference: String,
-  dietaryNotes: String,
-  medicalNotes: String,
+  foodPreference: { type: String, default: "No preference", trim: true },
+  dietaryNotes: { type: String, trim: true },
+  medicalNotes: { type: String, trim: true },
 
   // -------- Travelers --------
-  kids: Number,
-  elders: Number,
-  peoples: [TravelerSchema],
+  kids: { type: Number, default: 0, min: 0 },
+  elders: { type: Number, default: 0, min: 0 },
+  travelers: [TravelerSchema], // Aliased/Mapped from 'peoples' in the service layer
 
   // -------- Packing --------
   packingList: [PackingCategorySchema],
@@ -61,19 +61,17 @@ const TripSchema = new mongoose.Schema({
   // -------- Notes & Photos --------
   notes: [
     {
-      text: String,
+      text: { type: String, trim: true },
       date: {
         type: Date,
         default: Date.now
       }
     }
   ],
-  photos: [String],
+  photos: [{ type: String }]
+}, { timestamps: true });
 
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+// Explicit index for fast queries by userId
+TripSchema.index({ userId: 1 });
 
 module.exports = mongoose.model("Trip", TripSchema);

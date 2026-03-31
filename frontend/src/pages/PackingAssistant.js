@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import api, { aiApi } from "../api/axiosConfig";
 import "./PackingAssistant.css";
 import { useNavigate } from "react-router-dom";
-import DestinationInput from "../components/DestinationInput";
+import { AuthContext } from "../context/AuthContext";
 
 export default function PackingAssistant() {
     const [trip, setTrip] = useState(
@@ -44,15 +44,29 @@ export default function PackingAssistant() {
     const [isSaving, setIsSaving] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const navigate = useNavigate();
+    const { user, token, loading } = useContext(AuthContext);
+    const debounceTimeout = useRef(null);
+
     // 🔥 RESTORE DATA ON PAGE RELOAD
     useEffect(() => {
         const savedTrip = sessionStorage.getItem("trip");
         const savedPackingList = sessionStorage.getItem("packingList");
         const savedSummary = sessionStorage.getItem("summary");
-
+        const savedLastCheckedCity = sessionStorage.getItem("lastCheckedCity");
 
         if (savedTrip) {
-            setTrip(JSON.parse(savedTrip));
+            const parsed = JSON.parse(savedTrip);
+            setTrip(prev => ({ ...prev, ...parsed }));
+            if (savedLastCheckedCity) {
+                lastCheckedCityRef.current = savedLastCheckedCity;
+                
+                // If the user had unverified edits when they refreshed, automatically verify them now!
+                if (parsed.destination && parsed.destination.toLowerCase().trim() !== savedLastCheckedCity.toLowerCase().trim()) {
+                    setTimeout(() => handleCityCorrectionAndPrefetch(parsed.destination, true), 50);
+                }
+            } else if (parsed.destination) {
+                lastCheckedCityRef.current = parsed.destination;
+            }
         }
 
         if (savedPackingList) {
@@ -62,22 +76,17 @@ export default function PackingAssistant() {
         if (savedSummary) {
             setSummary(savedSummary);
         }
-    }, []);
-    const calculateDays = (start, end) => {
-        if (!start || !end) return 1;
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const diffTime = Math.abs(endDate - startDate);
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    };
-    // 🔥 CLEAR DATA WHEN LEAVING THIS PAGE (route change)
-    useEffect(() => {
+        
+        // This unmount function runs ONLY when clicking to another page (React Router navigation)
+        // It does NOT run on a hard browser refresh (F5), which allows the data to survive refreshes!
         return () => {
             sessionStorage.removeItem("trip");
             sessionStorage.removeItem("packingList");
             sessionStorage.removeItem("summary");
+            sessionStorage.removeItem("lastCheckedCity");
         };
     }, []);
+    // Removed beforeunload listener because sessionStorage naturally clears on tab close, but we want it to survive page refreshes!
 
 
     // 🔥 AUTO CALCULATE DAYS
@@ -93,26 +102,27 @@ export default function PackingAssistant() {
     const [prefetchedTemp, setPrefetchedTemp] = useState(null);
     const [isCorrectingCity, setIsCorrectingCity] = useState(false);
     const [isDestinationFocused, setIsDestinationFocused] = useState(false);
-    const [lastCheckedCity, setLastCheckedCity] = useState("");
+    const lastCheckedCityRef = useRef("");
     const [showTempWarning, setShowTempWarning] = useState(false);
 
-    const handleCityCorrectionAndPrefetch = async (city) => {
+    const handleCityCorrectionAndPrefetch = async (city, force = false) => {
         if (!city) return;
-        if (city.toLowerCase().trim() === lastCheckedCity.toLowerCase().trim()) return;
-
+        if (!force && city.toLowerCase().trim() === lastCheckedCityRef.current.toLowerCase().trim()) return;
+        
         setIsCorrectingCity(true);
-        setLastCheckedCity(city);
+        setShowTempWarning(false);
+        lastCheckedCityRef.current = city;
 
         try {
-            // Send typed city to our backend which uses Groq for instant correction & fetches weather simultaneously
-            const weatherRes = await axios.post("https://packmate69.onrender.com/prefetch-weather", { location: city });
+            const weatherRes = await aiApi.post("/prefetch-weather", { location: city });
 
             const correctedCity = weatherRes.data.location;
             const temp = weatherRes.data.temperature;
 
             setTrip(prev => ({ ...prev, destination: correctedCity }));
             setPrefetchedTemp(temp);
-            setLastCheckedCity(correctedCity);
+            lastCheckedCityRef.current = correctedCity;
+            sessionStorage.setItem("lastCheckedCity", correctedCity);
 
             if (temp === null) {
                 setShowTempWarning(true);
@@ -120,12 +130,9 @@ export default function PackingAssistant() {
             } else {
                 setShowTempWarning(false);
             }
-
         } catch (err) {
-            console.error("City correction/prefetch failed:", err);
-            // fallback gracefully
+            console.error("City correction failed:", err.response?.data?.message || err.message);
             setPrefetchedTemp(null);
-            setLastCheckedCity(city);
             setShowTempWarning(true);
             setTimeout(() => setShowTempWarning(false), 5000);
         } finally {
@@ -200,19 +207,12 @@ export default function PackingAssistant() {
     };
 
     const generatePackingList = async () => {
-        const token = localStorage.getItem("token");
-
         if (!token) {
-            navigate("/login", {
-                replace: true,
-                state: {
-                    message: "Please login to generate a packing list"
-                }
-            });
-            return; // ⛔ stop here
+            navigate("/login", { replace: true, state: { message: "Please login to generate a packing list" } });
+            return;
         }
 
-        setFormError(""); // Reset error on new action
+        setFormError(""); 
         if (!trip.destination || !trip.startDate || !trip.endDate) {
             setFormError("⚠️ Please enter destination, start date, and end date before generating your packing list.");
             return;
@@ -233,32 +233,22 @@ export default function PackingAssistant() {
             luggage: trip.luggage || "Backpack",
             travel_type: trip.travelMode || "Flight",
             people: trip.people
-                .map(
-                    (p) =>
-                        `${p.name || "Traveler"}, ${p.age || "N/A"} years, ${p.gender || "Female"}, Medical: ${p.medical || "None"}`
-                )
+                .map((p) => `${p.name || "Traveler"}, ${p.age || "N/A"} years, ${p.gender || "Female"}, Medical: ${p.medical || "None"}`)
                 .join("\n"),
             temperature: prefetchedTemp
         };
 
         try {
-            const res = await axios.post(
-                "https://packmate69.onrender.com/generate-packing-list",
-                payload
-            );
-
-            // convert raw list to sections for display
+            const res = await aiApi.post("/generate-packing-list", payload);
             const formattedList = formatPackingListForDB(res.data.packing_list);
-
             setPackingList(formattedList);
             setSummary(res.data.summary || "");
-
         } catch (err) {
-            console.error("Generation failed:", err);
-            setFormError("❌ Failed to generate packing list. Please try again.");
+            console.error("Generation failed:", err.response?.data?.message || err.message);
+            setFormError(`❌ ${err.response?.data?.message || "Failed to generate packing list. Please try again."}`);
         } finally {
             setIsLoading(false);
-            setFormError(""); // Clear the loading message if successful
+            setFormError(""); 
         }
     };
 
@@ -290,8 +280,7 @@ export default function PackingAssistant() {
 
 
     const saveTrip = async () => {
-        setFormError(""); // reset error
-        // ✅ BASIC VALIDATION
+        setFormError(""); 
         if (!trip.destination || !trip.startDate || !trip.endDate || trip.totalDays <= 0) {
             setFormError("⚠️ Please enter Trip Basics before saving the trip.");
             return;
@@ -302,67 +291,48 @@ export default function PackingAssistant() {
             return;
         }
 
+        if (!token) {
+            setFormError("⚠️ Please login first.");
+            return;
+        }
+
         try {
             setIsSaving(true);
-            const token = localStorage.getItem("token");
-
-            if (!token) {
-                setFormError("⚠️ Please login first.");
-                return;
-            }
-
-            await axios.post(
-                "https://packmate-backend.onrender.com/api/trips",
-                {
-                    destination: trip.destination,
-                    startDate: trip.startDate,
-                    endDate: trip.endDate,
-                    totalDays: trip.totalDays || calculateDays(trip.startDate, trip.endDate),
-                    tripType: trip.tripType,
-
-                    travelMode: trip.travelMode,
-                    accommodation: trip.accommodation,
-                    roomType: trip.roomType,
-                    laundry: trip.laundry,
-                    budget: trip.budget,
-
-                    weatherSensitivity: trip.weatherSensitivity,
-                    activityLevel: trip.activityLevel,
-                    shopping: trip.shopping,
-                    photographyGear: trip.photographyGear,
-                    workLaptop: trip.workLaptop,
-
-                    foodPreference: trip.foodPreference,
-                    dietaryNotes: trip.dietaryNotes,
-                    medicalNotes: trip.medicalNotes,
-
-                    kids: trip.kids,
-                    elders: trip.elders,
-
-                    peoples: trip.people.map(p => ({
-                        name: p.name || "Traveler",
-                        age: Number(p.age) || 0,
-                        gender: p.gender || "Female",
-                        medicalNotes: p.medical || ""   // ✅ map medical input to medicalNotes
-                    })),
-                    packingList: packingList, // already formatted for DB
-
-
-                    notes: trip.notes || [],
-                    photos: trip.photos || []
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-
+            await api.post("/trips", {
+                destination: trip.destination,
+                startDate: trip.startDate,
+                endDate: trip.endDate,
+                totalDays: trip.totalDays || 1,
+                tripType: trip.tripType,
+                travelMode: trip.travelMode,
+                accommodation: trip.accommodation,
+                roomType: trip.roomType,
+                laundry: trip.laundry,
+                budget: trip.budget,
+                weatherSensitivity: trip.weatherSensitivity,
+                activityLevel: trip.activityLevel,
+                shopping: trip.shopping,
+                photographyGear: trip.photographyGear,
+                workLaptop: trip.workLaptop,
+                foodPreference: trip.foodPreference,
+                dietaryNotes: trip.dietaryNotes,
+                medicalNotes: trip.medicalNotes,
+                kids: trip.kids,
+                elders: trip.elders,
+                peoples: trip.people.map(p => ({
+                    name: p.name || "Traveler",
+                    age: Number(p.age) || 0,
+                    gender: p.gender || "Female",
+                    medicalNotes: p.medical || ""
+                })),
+                packingList: packingList,
+                notes: trip.notes || [],
+                photos: trip.photos || []
+            });
             setFormError("✅ Trip saved successfully!");
         } catch (err) {
-            console.error("Save trip failed:", err.response?.data || err.message);
-            setFormError("❌ Failed to save trip. Try again.");
+            console.error("Save trip failed:", err.response?.data?.message || err.message);
+            setFormError(`❌ ${err.response?.data?.message || "Failed to save trip. Try again."}`);
         } finally {
             setIsSaving(false);
         }
@@ -398,11 +368,7 @@ export default function PackingAssistant() {
 
         try {
             setIsDownloading(true);
-            const res = await axios.post(
-                "https://packmate69.onrender.com/download-packing-list",
-                payload,
-                { responseType: "blob" }
-            );
+            const res = await aiApi.post("/download-packing-list", payload, { responseType: "blob" });
 
             const url = URL.createObjectURL(new Blob([res.data]));
             const a = document.createElement("a");
@@ -410,8 +376,8 @@ export default function PackingAssistant() {
             a.download = "Smart_Packing_List.docx";
             a.click();
         } catch (err) {
-            console.error("Download failed:", err);
-            setFormError("❌ Failed to download DOCX. Please try again.");
+            console.error("Download failed:", err.response?.data?.message || err.message);
+            setFormError(`❌ ${err.response?.data?.message || "Failed to download DOCX. Please try again."}`);
         } finally {
             setIsDownloading(false);
         }
@@ -467,27 +433,13 @@ export default function PackingAssistant() {
 
 
     useEffect(() => {
-        const checkAuth = () => {
-            const token = localStorage.getItem("token");
-
-            if (!token) {
-                navigate("/login", {
-                    replace: true,
-                    state: {
-                        message: "Please login to use Packing Assistant"
-                    }
-                });
-            }
-        };
-
-        // run immediately
-        checkAuth();
-
-        // listen for logout (token removal)
-        window.addEventListener("storage", checkAuth);
-
-        return () => window.removeEventListener("storage", checkAuth);
-    }, [navigate]);
+        if (!loading && !user && !token) {
+            navigate("/login", {
+                replace: true,
+                state: { message: "Please login to use Packing Assistant" }
+            });
+        }
+    }, [user, token, loading, navigate]);
 
 
 
@@ -501,22 +453,52 @@ export default function PackingAssistant() {
             <section className="card">
                 <h2>Trip Basics</h2>
                 
-                <DestinationInput 
-                    trip={trip}
-                    handleChange={handleChange}
-                    handleCityCorrectionAndPrefetch={handleCityCorrectionAndPrefetch}
-                    setIsDestinationFocused={setIsDestinationFocused}
-                    showTempWarning={showTempWarning}
-                    isCorrecting={isCorrectingCity}
-                />
+                <div className="form-row">
+                    <label>Destination City</label>
+                    <div className="destination-wrapper" style={{ position: "relative" }}>
+                        <input
+                            type="text"
+                            name="destination"
+                            placeholder="Please enter valid destination."
+                            value={trip.destination}
+                            onChange={(e) => {
+                                handleChange(e);
+                                if (showTempWarning) setShowTempWarning(false);
+                                setIsDestinationFocused(true);
+                            }}
+                            onBlur={(e) => {
+                                setTimeout(() => setIsDestinationFocused(false), 200);
+                                handleCityCorrectionAndPrefetch(e.target.value);
+                            }}
+                            autoComplete="off"
+                        />
+                        {isCorrectingCity && (
+                            <span style={{ color: "#004adfff",position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "14px" }}>
+                                ⏳ Autocorrecting...
+                            </span>
+                        )}
+                    </div>
+                    {isCorrectingCity && (
+                        <div style={{ color: "#004adfff", fontSize: "14px", marginTop: "5px" }}>
+                            You can continue filling out the rest of the form while we check this.
+                        </div>
+                    )}
+                    
+                    {showTempWarning && (
+                        <div style={{ color: "#d97706ff", fontSize: "14px", marginTop: "5px" }}>
+                            ⚠️ Temp not available for your destination. A general packing list will be generated.
+                        </div>
+                    )}
 
+                </div>
+                
                 <div className="grid">
                     <div>
                         <label>Start Date</label>
                         <input
                             type="date"
                             name="startDate"
-                            value={trip.startDate}
+                            value={trip.startDate || ""}
                             onChange={handleChange}
                         />                    </div>
                     <div>
@@ -524,7 +506,7 @@ export default function PackingAssistant() {
                         <input
                             type="date"
                             name="endDate"
-                            value={trip.endDate}
+                            value={trip.endDate || ""}
                             onChange={handleChange}
                         />
                     </div>
@@ -689,7 +671,7 @@ export default function PackingAssistant() {
                     <label>Dietary Notes</label>
                     <input
                         name="dietaryNotes"
-                        value={trip.dietaryNotes}
+                        value={trip.dietaryNotes || ""}
                         placeholder="Allergies, restrictions..."
                         onChange={handleChange}
                     />
@@ -699,7 +681,7 @@ export default function PackingAssistant() {
                     <label>Medical Notes (Optional)</label>
                     <input
                         name="medicalNotes"
-                        value={trip.medicalNotes}
+                        value={trip.medicalNotes || ""}
                         placeholder="Chronic conditions, medications..."
                         onChange={handleChange}
                     />
@@ -717,7 +699,7 @@ export default function PackingAssistant() {
                             type="number"
                             name="kids"
                             min="0"
-                            value={trip.kids}
+                            value={trip.kids ?? ""}
                             onChange={handleChange}
                             onKeyDown={(e) => {
                                 if (["e", "E", "+", "-", "."].includes(e.key)) {
@@ -732,7 +714,7 @@ export default function PackingAssistant() {
                             type="number"
                             name="elders"
                             min="0"
-                            value={trip.elders}
+                            value={trip.elders ?? ""}
                             onChange={handleChange}
                             onKeyDown={(e) => {
                                 if (["e", "E", "+", "-", "."].includes(e.key)) {
@@ -760,7 +742,7 @@ export default function PackingAssistant() {
                                 <input
                                     type="text"
                                     placeholder="Full Name"
-                                    value={p.name}
+                                    value={p.name || ""}
                                     onChange={e => handleChange(e, i, "name")}
                                 />
                             </div>
@@ -770,7 +752,7 @@ export default function PackingAssistant() {
                                     type="number"
                                     min="0"
                                     placeholder="Age"
-                                    value={p.age}
+                                    value={p.age || ""}
                                     onChange={e => handleChange(e, i, "age")}
                                     onKeyDown={(e) => {
                                         if (["e", "E", "+", "-", "."].includes(e.key)) {
@@ -792,7 +774,7 @@ export default function PackingAssistant() {
                                 <input
                                     type="text"
                                     placeholder="Any medical info"
-                                    value={p.medical}
+                                    value={p.medical || ""}
                                     onChange={e => handleChange(e, i, "medical")}
                                 />
                             </div>
@@ -814,15 +796,23 @@ export default function PackingAssistant() {
             <div className="actions">
                 <button
                     onClick={generatePackingList}
-                    disabled={isLoading}
-                    style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+                    disabled={isLoading || isSaving || isDownloading || isCorrectingCity}
+                    className="generate-btn"
                 >
                     {isLoading ? "⏳ Generating..." : "🚀 Generate Packing List"}
                 </button>
-                <button onClick={downloadDocx} disabled={isDownloading} style={{ opacity: isDownloading ? 0.6 : 1, cursor: isDownloading ? "not-allowed" : "pointer" }}>
+                <button 
+                    onClick={downloadDocx} 
+                    disabled={isLoading || isSaving || isDownloading || isCorrectingCity}
+                    className="download-btn"
+                >
                     {isDownloading ? "📥 Downloading..." : "📥 Download DOCX"}
                 </button>
-                <button onClick={saveTrip} disabled={isSaving} style={{ opacity: isSaving ? 0.6 : 1, cursor: isSaving ? "not-allowed" : "pointer" }}>
+                <button 
+                    onClick={saveTrip} 
+                    disabled={isLoading || isSaving || isDownloading || isCorrectingCity}
+                    className="save-btn"
+                >
                     {isSaving ? "💾 Saving..." : "💾 Save Trip"}
                 </button>
             </div>

@@ -3,14 +3,16 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = useContext(AuthContext);
+  const { user, token, loading } = useContext(AuthContext);
   const location = useLocation();
 
+  // ⏳ wait until auth check completes
   if (loading) {
     return <p>Loading...</p>;
   }
 
-  if (!user) {
+  // 🔐 not logged in
+  if (!user && !token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

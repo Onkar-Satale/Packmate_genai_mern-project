@@ -59,7 +59,7 @@ const Home4 = () => {
 
     try {
       const data = new FormData();
-      data.append('access_key', '7c30012f-a14c-4141-b8af-64707af29229');
+      data.append('access_key', process.env.REACT_APP_WEB3FORMS_KEY || '7c30012f-a14c-4141-b8af-64707af29229');
       data.append('subject', 'New Newsletter Subscription - PackMate');
       data.append('email', email);
       data.append('message', `New newsletter subscription from: ${email}`);

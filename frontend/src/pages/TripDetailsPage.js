@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosConfig";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./TripDetailsPage.css";
 
 const TripDetailsPage = () => {
@@ -17,31 +19,18 @@ const TripDetailsPage = () => {
 
     const handleDeleteNote = async (idx) => {
         const updatedNotes = notes.filter((_, i) => i !== idx);
-
         try {
-            const token = localStorage.getItem("token");
-            await axios.put(
-                `https://packmate-backend.onrender.com/api/trips/${id}`,
-                { notes: updatedNotes },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
+            await api.put(`/trips/${id}`, { notes: updatedNotes });
             setNotes(updatedNotes);
+            toast.success("Note deleted successfully");
         } catch (err) {
-            console.error("Failed to delete note", err);
+            console.error("Failed to delete note", err.response?.data?.message || err.message);
+            toast.error(err.response?.data?.message || "Failed to delete note");
         }
     };
 
-
-    // Photo modal
-    const [photoModalOpen, setPhotoModalOpen] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-    const [photoEditMode, setPhotoEditMode] = useState(false);// Notes section edit
-    const [selectedNotes, setSelectedNotes] = useState([]);
-
-
-
-    // Add at top
+    const [photoEditMode, setPhotoEditMode] = useState(false);
     const [lightboxOpen, setLightboxOpen] = useState(false);
 
 
@@ -79,66 +68,44 @@ const TripDetailsPage = () => {
     const handleSaveNote = async () => {
         if (!noteTextRef.current) return;
         
-        // Read directly from the DOM to bypass React's delayed composition events on Android
         const currentText = noteTextRef.current.value;
         if (!currentText.trim()) return;
 
-        // Eagerly clear the text to prevent double-submits
         noteTextRef.current.value = "";
         setShowAdd(false);
 
         let updatedNotes = [...notes];
-
         if (isEditMode && selectedNoteIndex !== null) {
-            updatedNotes[selectedNoteIndex] = {
-                ...updatedNotes[selectedNoteIndex],
-                text: currentText,
-                date: new Date().toLocaleString()
-            };
+            updatedNotes[selectedNoteIndex] = { ...updatedNotes[selectedNoteIndex], text: currentText, date: new Date().toLocaleString() };
         } else {
-            updatedNotes.push({
-                text: currentText,
-                date: new Date().toLocaleString()
-            });
+            updatedNotes.push({ text: currentText, date: new Date().toLocaleString() });
         }
 
         try {
-            const token = localStorage.getItem("token");
-            await axios.put(
-                `https://packmate-backend.onrender.com/api/trips/${id}`,
-                { notes: updatedNotes },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
+            await api.put(`/trips/${id}`, { notes: updatedNotes });
             setNotes(updatedNotes);
             setIsEditMode(false);
             setSelectedNoteIndex(null);
+            toast.success("Note saved successfully!");
         } catch (err) {
             console.error("Failed to save note", err);
-            // Optionally, revert UI state on failure
+            toast.error(err.response?.data?.message || "Failed to save note");
         }
     };
-
 
     useEffect(() => {
         const fetchTripDetails = async () => {
             try {
-                const token = localStorage.getItem("token");
-                const res = await axios.get(`https://packmate-backend.onrender.com/api/trips/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setTrip(res.data);
-                // Ensure notes is always an array
-                setNotes(Array.isArray(res.data.notes) ? res.data.notes : []);
+                const res = await api.get(`/trips/${id}`);
+                setTrip(res.data?.data || null);
+                setNotes(Array.isArray(res.data?.data?.notes) ? res.data.data.notes : []);
             } catch (err) {
                 console.error("Failed to fetch trip details", err);
+                toast.error(err.response?.data?.message || "Failed to fetch trip details");
             }
         };
         fetchTripDetails();
     }, [id]);
-
-
-
 
     if (!trip) return <p>Loading trip details...</p>;
 
@@ -150,92 +117,40 @@ const TripDetailsPage = () => {
         if (!files || files.length === 0) return;
         setIsUploading(true);
 
-        const token = localStorage.getItem("token");
         const formData = new FormData();
-        for (let i = 0; i < files.length; i++) {
-            formData.append("photos", files[i]);
-        }
+        Array.from(files).forEach((file) => formData.append("photos", file));
 
         try {
-            const res = await axios.put(
-                `https://packmate-backend.onrender.com/api/trips/${id}/upload`, // <-- new upload route
-                formData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "multipart/form-type",
-                    },
-                }
-            );
-
-            setTrip({ ...trip, photos: res.data.photos });
+            const res = await api.put(`/trips/${id}/upload`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            setTrip({ ...trip, photos: res.data?.data?.photos || [] });
+            toast.success("Photos uploaded successfully!");
         } catch (err) {
             console.error("Failed to upload photos", err);
+            toast.error(err.response?.data?.message || "Failed to upload photos");
         } finally {
             setIsUploading(false);
         }
     };
 
-
-
-
-    const openPhotoModal = (idx) => {
-        setCurrentPhotoIndex(idx);
-        setPhotoModalOpen(true);
-    };
-
-    const closePhotoModal = () => setPhotoModalOpen(false);
     const togglePhotoSelect = (index) => {
         setSelectedPhotos((prev) =>
-            prev.includes(index)
-                ? prev.filter((i) => i !== index)
-                : [...prev, index]
+            prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
         );
     };
 
     const handleDeleteSelectedPhotos = async () => {
-        const remainingPhotos = trip.photos.filter(
-            (_, index) => !selectedPhotos.includes(index)
-        );
+        const remainingPhotos = trip.photos.filter((_, index) => !selectedPhotos.includes(index));
 
         try {
-            const token = localStorage.getItem("token");
-            await axios.put(
-                `https://packmate-backend.onrender.com/api/trips/${id}`,
-                { photos: remainingPhotos },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
+            await api.put(`/trips/${id}`, { photos: remainingPhotos });
             setTrip({ ...trip, photos: remainingPhotos });
             setSelectedPhotos([]);
+            toast.success("Photos deleted successfully!");
         } catch (err) {
             console.error("Failed to delete photos", err);
-        }
-    };
-
-    // Toggle note selection (like photos)
-    const toggleNoteSelect = (index) => {
-        setSelectedNotes((prev) =>
-            prev.includes(index)
-                ? prev.filter((i) => i !== index)
-                : [...prev, index]
-        );
-    };
-
-    // Delete selected notes
-    const handleDeleteSelectedNotes = async () => {
-        const remainingNotes = notes.filter((_, idx) => !selectedNotes.includes(idx));
-        try {
-            const token = localStorage.getItem("token");
-            await axios.put(
-                `https://packmate-backend.onrender.com/api/trips/${id}`,
-                { notes: remainingNotes },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setNotes(remainingNotes);
-            setSelectedNotes([]);
-        } catch (err) {
-            console.error("Failed to delete notes", err);
+            toast.error(err.response?.data?.message || "Failed to delete photos");
         }
     };
 
@@ -245,7 +160,7 @@ const TripDetailsPage = () => {
     };
 
     const handleStartTicking = () => {
-        setDraftPackingList(JSON.parse(JSON.stringify(trip.packingList)));
+        setDraftPackingList(structuredClone(trip.packingList));
         setIsTickingMode(true);
     };
 
@@ -268,16 +183,13 @@ const TripDetailsPage = () => {
     const handleSaveTicking = async () => {
         try {
             setIsSavingPackingList(true);
-            const token = localStorage.getItem("token");
-            await axios.put(
-                `https://packmate-backend.onrender.com/api/trips/${id}`,
-                { packingList: draftPackingList },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.put(`/trips/${id}`, { packingList: draftPackingList });
             setTrip({ ...trip, packingList: draftPackingList });
             setIsTickingMode(false);
+            toast.success("Packing list saved!");
         } catch (err) {
             console.error("Failed to save packing list", err);
+            toast.error(err.response?.data?.message || "Failed to save packing list");
         } finally {
             setIsSavingPackingList(false);
         }
@@ -295,6 +207,7 @@ const TripDetailsPage = () => {
         setDraftPackingList(updatedDraft);
     };    return (
         <div className="trip-details-page">
+            <ToastContainer position="top-right" autoClose={3000} />
             <h1>
                 Trip Details of 🌍
                 <span style={{ color: "#3a009e", fontWeight: "700" }}>
@@ -594,8 +507,8 @@ const TripDetailsPage = () => {
                 <div className="photos-container">
                     {trip.photos && trip.photos.length > 0 ? (
                         trip.photos.map((photo, i) => {
-                            // Ensure correct URL for image
-                            const photoURL = photo.startsWith("http") ? photo : `https://packmate-backend.onrender.com${photo}`;
+                            const baseURL = process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:5000";
+                            const photoURL = photo.startsWith("http") ? photo : `${baseURL}${photo}`;
                             return (
                                 <div key={i} className="photo-wrapper">
                                     {photoEditMode && (
@@ -638,7 +551,7 @@ const TripDetailsPage = () => {
                                 src={
                                     trip.photos[currentPhotoIndex].startsWith("http")
                                         ? trip.photos[currentPhotoIndex]
-                                        : `https://packmate-backend.onrender.com${trip.photos[currentPhotoIndex]}`
+                                        : `${process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:5000"}${trip.photos[currentPhotoIndex]}`
                                 }
                                 alt={`Trip photo ${currentPhotoIndex + 1}`}
                                 className="lightbox-photo"

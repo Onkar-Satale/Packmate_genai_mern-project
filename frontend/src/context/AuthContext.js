@@ -4,23 +4,35 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on page refresh
+  // Load user from localStorage on refresh
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const email = localStorage.getItem('email');
-    const firstName = localStorage.getItem('firstName');
-    const lastName = localStorage.getItem('lastName');
+    try {
+      const storedToken = localStorage.getItem('token');
+      const email = localStorage.getItem('email');
+      const firstName = localStorage.getItem('firstName');
+      const lastName = localStorage.getItem('lastName');
 
-    if (token && email && firstName && lastName) {
-      setUser({ token, email, firstName, lastName });
+      if (storedToken && email && firstName && lastName) {
+        setUser({ email, firstName, lastName });
+        setToken(storedToken);
+      }
+    } catch (error) {
+      console.error("Auth load error:", error);
+      setUser(null);
+      setToken(null);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  // login expects a full user object
   const login = (userData) => {
     const { token, email, firstName, lastName } = userData;
-    setUser({ token, email, firstName, lastName });
+
+    setUser({ email, firstName, lastName });
+    setToken(token);
 
     localStorage.setItem('token', token);
     localStorage.setItem('email', email);
@@ -30,6 +42,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    setToken(null);
+
     localStorage.removeItem('token');
     localStorage.removeItem('email');
     localStorage.removeItem('firstName');
@@ -37,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
