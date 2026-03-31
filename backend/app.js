@@ -14,8 +14,20 @@ const app = express();
 
 // 1. Security Middlewares
 app.use(helmet());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://packmatefrontend.vercel.app",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "https://YOUR-DEPLOYED-FRONTEND-LINK.com", // Fallback defaults to deployment directly
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS blocked origin'), false);
+    }
+  },
   credentials: true
 }));
 
@@ -41,7 +53,7 @@ app.use(morgan("dev"));
 // 4. Rate Limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 mins
-  max: 100, 
+  max: 100,
   message: { success: false, message: "Too many requests, please try again later." }
 });
 app.use("/api/", apiLimiter);
@@ -52,7 +64,7 @@ app.use('/api/trips', tripRoutes);
 
 // Health check
 app.get('/', (req, res) => {
-    res.json({ success: true, message: 'Backend is running securely' });
+  res.json({ success: true, message: 'Backend is running securely' });
 });
 
 // 6. Centralized Error Pipeline

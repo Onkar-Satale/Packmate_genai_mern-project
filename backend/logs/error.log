@@ -1,1 +1,7 @@
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-03-31 14:29:17"}
+{"level":"error","message":"500 - Invalid Signature 78623f80ca9d5dea7f2ec775903904061542211a. String to sign - 'allowed_formats=jpg,png,jpeg,webp,gif&folder=packmate_trips&timestamp=1774948116'. - /api/trips/69cb8edecd2c7ea2ca651e4f/upload - PUT - ::1","service":"packmate-api","timestamp":"2026-03-31 14:38:45"}
+{"level":"error","message":"500 - Invalid Signature 8d741ed4d88e84a5475433a109e99e4ba99e344d. String to sign - 'allowed_formats=jpg,png,jpeg,webp,gif&folder=packmate_trips&timestamp=1774948262'. - /api/trips/69cb8edecd2c7ea2ca651e4f/upload - PUT - ::1","service":"packmate-api","timestamp":"2026-03-31 14:41:06"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips/69cb8edecd2c7ea2ca651e4f - GET - ::1","service":"packmate-api","timestamp":"2026-03-31 14:45:55"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-03-31 14:45:55"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-03-31 15:42:23"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-03-31 15:42:23"}

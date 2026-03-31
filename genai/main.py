@@ -76,13 +76,19 @@ def root():
     """
     return {"message": "Smart Packing Assistant API is live ✅"}
 
-# Fetch allowed frontend origin securely with fallback to localhost
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://YOUR-DEPLOYED-FRONTEND-LINK.com")
+# Allow both local and deployed frontend origins explicitly
+FRONTEND_URLS = [
+    "http://localhost:3000",
+    "https://packmatefrontend.vercel.app"
+]
+
+if os.getenv("FRONTEND_URL"):
+    FRONTEND_URLS.append(os.getenv("FRONTEND_URL"))
 
 # Add CORS middleware to allow the React frontend to communicate with this backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],  # Uses env variable for production security
+    allow_origins=FRONTEND_URLS,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
