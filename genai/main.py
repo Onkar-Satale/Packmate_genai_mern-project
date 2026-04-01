@@ -77,7 +77,7 @@ def root():
     return {"message": "Smart Packing Assistant API is live ✅"}
 
 # Allow frontend origins defined in .env, falling back to locals for development
-frontend_env = os.getenv("FRONTEND_URLS", "http://localhost:3000")
+frontend_env = os.getenv("FRONTEND_URLS", "http://localhost:3000,https://packmatefrontend.vercel.app")
 FRONTEND_URLS = [url.strip() for url in frontend_env.split(",") if url.strip()]
 
 # Add CORS middleware to allow the React frontend to communicate with this backend.
