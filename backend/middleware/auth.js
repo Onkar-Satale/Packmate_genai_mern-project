@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
       return next(new ApiError(401, "No Bearer token provided"));
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader?.split(" ")[1];
     if (!token) {
       return next(new ApiError(401, "No token found in Bearer string"));
     }

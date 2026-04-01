@@ -76,14 +76,9 @@ def root():
     """
     return {"message": "Smart Packing Assistant API is live ✅"}
 
-# Allow both local and deployed frontend origins explicitly
-FRONTEND_URLS = [
-    "http://localhost:3000",
-    "https://packmatefrontend.vercel.app"
-]
-
-if os.getenv("FRONTEND_URL"):
-    FRONTEND_URLS.append(os.getenv("FRONTEND_URL"))
+# Allow frontend origins defined in .env, falling back to locals for development
+frontend_env = os.getenv("FRONTEND_URLS", "http://localhost:3000")
+FRONTEND_URLS = [url.strip() for url in frontend_env.split(",") if url.strip()]
 
 # Add CORS middleware to allow the React frontend to communicate with this backend.
 app.add_middleware(
@@ -179,7 +174,7 @@ def create_docx(packing_list: list):
 
 def get_avg_temperature(location: str):
     """
-    Fetches the current average temperature for the provided destination using OpenWeather API.
+    Fetches the current average temperature for the provided destination using WeatherAPI API.
     
     Args:
         location (str): The name of the city or destination.
@@ -265,7 +260,7 @@ GENERAL INSTRUCTIONS
 - Include **weather-appropriate items** based on destination temperature and season.
 - Include **electronics and accessories** according to traveler details (phones, laptops, cameras, chargers).
 - Include **food, snacks, and hydration** as per traveler type (solo, kids, elders, family).
-- Include **backup and emergency items**: extra socks, chargers, first-aid, medications.
+- Include **backup and emergency items**: extra socks, ch+argers, first-aid, medications.
 - For multi-person trips, include items for **each traveler individually**.
 - **Do not use placeholders** like "stuff" or "if needed".
 - Always use **consistent emojis per section**.

@@ -11,14 +11,13 @@ const authRoutes = require('./routes/auth');
 const tripRoutes = require('./routes/trips');
 
 const app = express();
+app.set("trust proxy", 1);
 
 // 1. Security Middlewares
 app.use(helmet());
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://packmatefrontend.vercel.app",
-  process.env.FRONTEND_URL
-].filter(Boolean);
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(url => url.trim())
+  : [process.env.FRONTEND_URL || "http://localhost:3000"];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -56,7 +55,8 @@ const apiLimiter = rateLimit({
   max: 100,
   message: { success: false, message: "Too many requests, please try again later." }
 });
-app.use("/api/", apiLimiter);
+app.use("/api/login", apiLimiter);
+app.use("/api/register", apiLimiter);
 
 // 5. Mount API Routes
 app.use('/api', authRoutes);

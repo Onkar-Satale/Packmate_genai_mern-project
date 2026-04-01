@@ -25,6 +25,8 @@ exports.register = async (req, res, next) => {
     
     setRefreshCookie(res, refreshToken);
 
+    
+
     res.status(201).json({
       success: true,
       data: {
