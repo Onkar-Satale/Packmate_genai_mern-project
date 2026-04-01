@@ -24,7 +24,7 @@ const errorHandler = (err, req, res, next) => {
 
   // If error is not an instance of ApiError, wrap it
   if (!(error instanceof ApiError)) {
-    const statusCode = error.statusCode || (error instanceof Error ? 400 : 500); 
+    const statusCode = error.statusCode || 500; 
     const message = error.message || "Internal Server Error";
     error = new ApiError(statusCode, message, false, err.stack);
   }
