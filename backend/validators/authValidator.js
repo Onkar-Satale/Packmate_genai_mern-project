@@ -12,7 +12,7 @@ const validateRequest = (req, res, next) => {
 
 const registerValidator = [
   body("firstName").trim().notEmpty().withMessage("First name is required"),
-  body("lastName").trim().notEmpty().withMessage("Last name is required"),
+  body("lastName").optional().trim(),
   body("email").trim().isEmail().withMessage("Must be a valid email address").normalizeEmail(),
   body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
   validateRequest,

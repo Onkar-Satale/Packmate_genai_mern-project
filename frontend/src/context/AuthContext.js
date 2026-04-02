@@ -15,8 +15,8 @@ export const AuthProvider = ({ children }) => {
       const firstName = localStorage.getItem('firstName');
       const lastName = localStorage.getItem('lastName');
 
-      if (storedToken && email && firstName && lastName) {
-        setUser({ email, firstName, lastName });
+      if (storedToken && email && firstName) {
+        setUser({ email, firstName, lastName: lastName !== "undefined" && lastName !== null ? lastName : "" });
         setToken(storedToken);
       }
     } catch (error) {

@@ -37,8 +37,8 @@ export default function Signup() {
     const validateForm = () => {
         const { firstName, lastName, email, password, confirmPassword } = formData;
 
-        if (!firstName || !lastName || !email || !password || !confirmPassword) {
-            toast.error("⚠️ Please fill all fields");
+        if (!firstName || !email || !password || !confirmPassword) {
+            toast.error("⚠️ Please fill all required fields");
             return false;
         }
 
@@ -138,10 +138,9 @@ export default function Signup() {
                     <input
                         type="text"
                         name="lastName"
-                        placeholder="Enter your last name"
+                        placeholder="Enter your last name (optional)"
                         value={formData.lastName}
                         onChange={handleChange}
-                        required
                     />
 
                     <label>Email</label>

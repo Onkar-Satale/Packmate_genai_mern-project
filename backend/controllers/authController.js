@@ -107,3 +107,15 @@ exports.logout = async (req, res, next) => {
   }
 };
 
+exports.deleteAccount = async (req, res, next) => {
+  try {
+    const userId = req.userId; // auth middleware sets req.userId
+    await authService.deleteUser(userId);
+    res.clearCookie("refreshToken");
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch(err) {
+    next(err);
+  }
+};
+
+

@@ -6,7 +6,7 @@ import api from "../api/axiosConfig";
 import "./AccountPage.css";
 
 const AccountPage = () => {
-    const { user } = useContext(AuthContext); // ✅ REAL USER
+    const { user, logout } = useContext(AuthContext); // ✅ REAL USER + LOGOUT
     const [trips, setTrips] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
@@ -18,6 +18,15 @@ const AccountPage = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [tripToDelete, setTripToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // ✅ delete account modal state (ADDED)
+    const [showAccountDeleteModal, setShowAccountDeleteModal] = useState(false);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+    const capitalize = (str) => {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
 
     // ---------------- FETCH TRIPS ----------------
     const fetchTrips = async () => {
@@ -73,6 +82,23 @@ const AccountPage = () => {
         }
     };
 
+    // ---------------- DELETE ACCOUNT (CONFIRMED) ----------------
+    const confirmDeleteAccount = async () => {
+        setIsDeletingAccount(true);
+
+        try {
+            await api.delete(`/delete-account`);
+            setShowAccountDeleteModal(false);
+            logout();
+            navigate("/");
+        } catch (err) {
+            console.error("Failed to delete account", err);
+            alert("Failed to delete account. Please try again.");
+        } finally {
+            setIsDeletingAccount(false);
+        }
+    };
+
     // ---------------- SEE DETAILS ----------------
     const handleSeeDetails = (tripId) => {
         navigate(`/trip/${tripId}`);
@@ -95,13 +121,15 @@ const AccountPage = () => {
     if (loading) return <p>Loading trips...</p>;
 
     return (
-        <div className="account-page-container">
+        <div className="account-page-container" style={{ position: "relative" }}>
             <div className="account-page-content">
 
                 {user && (
-                    <h1>
-                        Welcome, {user.firstName} {user.lastName} !
-                    </h1>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px" }}>
+                        <h1 style={{ margin: 0, textAlign: "center" }}>
+                            Welcome, {capitalize(user.firstName)} {user.lastName ? capitalize(user.lastName) : ""}!
+                        </h1>
+                    </div>
                 )}
 
                 {error && <p className="error-message" style={{ color: "red", textAlign: "center" }}>{error}</p>}
@@ -161,6 +189,17 @@ const AccountPage = () => {
                     ))}
                 </div>
 
+                {/* ✅ DELETE ACCOUNT BUTTON AT BOTTOM */}
+                {user && (
+                    <div className="delete-account-container">
+                        <button 
+                            className="delete-account-btn" 
+                            onClick={() => setShowAccountDeleteModal(true)}
+                        >
+                            Delete Account
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* ✅ CUSTOM DELETE MODAL */}
@@ -187,6 +226,33 @@ const AccountPage = () => {
                                 disabled={isDeleting}
                             >
                                 {isDeleting ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ✅ CUSTOM DELETE ACCOUNT MODAL */}
+            {showAccountDeleteModal && (
+                <div className="delete-modal-overlay">
+                    <div className="delete-modal" style={{ textAlign: "center" }}>
+                        <h3>Delete Account?</h3>
+                        <p>This action cannot be undone. Are you sure?</p>
+
+                        <div className="delete-modal-actions" style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "20px" }}>
+                            <button
+                                className="cancel-btn"
+                                onClick={() => setShowAccountDeleteModal(false)}
+                            >
+                                No
+                            </button>
+
+                            <button
+                                className="confirm-delete-btn"
+                                onClick={confirmDeleteAccount}
+                                disabled={isDeletingAccount}
+                            >
+                                {isDeletingAccount ? 'Deleting...' : 'Yes'}
                             </button>
                         </div>
                     </div>

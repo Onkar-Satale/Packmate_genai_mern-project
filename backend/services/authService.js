@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Trip = require("../models/Trip");
 const jwt = require("jsonwebtoken");
 
 class AuthService {
@@ -43,6 +44,11 @@ class AuthService {
 
   async clearRefreshToken(userId) {
     return await User.findByIdAndUpdate(userId, { $unset: { refreshToken: "" } });
+  }
+
+  async deleteUser(userId) {
+    await Trip.deleteMany({ userId: userId });
+    return await User.findByIdAndDelete(userId);
   }
 
   verifyRefreshToken(token) {

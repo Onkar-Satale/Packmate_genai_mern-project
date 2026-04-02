@@ -17,3 +17,14 @@
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-01 14:51:35"}
 {"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-04-01 15:17:12"}
 {"level":"error","message":"401 - No refresh token available - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-01 15:17:12"}
+{"level":"error","message":"400 - User already exists - /api/register - POST - ::1","service":"packmate-api","timestamp":"2026-04-01 23:00:27"}
+{"level":"error","message":"400 - Must be a valid email address - /api/register - POST - ::1","service":"packmate-api","timestamp":"2026-04-01 23:00:42"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-04-02 08:09:58"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:09:58"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:10:04"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:40:42"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:40:52"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:41:06"}
+{"level":"error","message":"400 - User already exists - /api/register - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:43:14"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:43:26"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:43:33"}
