@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'https://YOUR-DEPLOYED-BACKEND-LINK.com/api', // Fallback defaults to deployed API
+    baseURL: process.env.REACT_APP_API_URL, 
     withCredentials: true // Extremely important for strictly passing HttpOnly Refresh Cookies
 });
 
 export const aiApi = axios.create({
-    baseURL: process.env.REACT_APP_AI_URL || "https://YOUR-DEPLOYED-GENAI-LINK.com", // Fallback defaults to GenAI Deployment
+    baseURL: process.env.REACT_APP_AI_URL , 
 });
 
 // Add a request interceptor

@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="social-icons">
           
           <a 
-            href="https://www.instagram.com/rajwardhan._b" 
+            href={process.env.REACT_APP_SOCIAL_INSTAGRAM} 
             target="_blank" 
             rel="noopener noreferrer"
           >
@@ -19,7 +19,7 @@ const Footer = () => {
           </a>
 
           <a 
-            href="https://www.linkedin.com/in/satale-onkar-7332b0220/" 
+            href={process.env.REACT_APP_SOCIAL_LINKEDIN} 
             target="_blank" 
             rel="noopener noreferrer"
           >
@@ -27,7 +27,7 @@ const Footer = () => {
           </a>
 
           <a 
-            href="https://x.com/VijayM89311?t=e4vHjB05h0XuXOTMmDI6vw&s=09" 
+            href={process.env.REACT_APP_SOCIAL_TWITTER} 
             target="_blank" 
             rel="noopener noreferrer"
           >

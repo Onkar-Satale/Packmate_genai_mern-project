@@ -223,6 +223,8 @@ export default function PackingAssistant() {
 
         const payload = {
             location: trip.destination || "",
+            start_date: trip.startDate,
+            end_date: trip.endDate,
             days: trip.totalDays || 1,
             trip_type: trip.tripType || "Solo",
             purpose: trip.purpose || "Leisure",

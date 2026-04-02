@@ -28,3 +28,6 @@
 {"level":"error","message":"400 - User already exists - /api/register - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:43:14"}
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:43:26"}
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 08:43:33"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-04-02 23:14:55"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 23:14:55"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 23:15:22"}

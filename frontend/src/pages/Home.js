@@ -63,6 +63,24 @@ const Home = () => {
                 </p>
                 <img src={img2} alt="Travel Companion" className="sectionImage" />
             </section>
+
+            {/* Disclaimer Section */}
+            <section className="disclaimerSection">
+                <div className="disclaimerContent">
+                    <h2 className="disclaimerHeading">⚠️ Important Things to Know!</h2>
+                    <ul className="disclaimerList">
+                        <li>
+                            <strong>Provide the Right City:</strong> PackMate has a built-in AI auto-corrector, but providing the correct, specific city name guarantees we can pull exact weather station data for you!
+                        </li>
+                        <li>
+                            <strong>Check Closer to Travel Dates:</strong> We pull highly accurate weather data for the exact next 16 days. For travel dates starting after 16 days, PackMate uses a "temperature drift" calculation to estimate conditions, which may not be 100% precise.
+                        </li>
+                        <li>
+                            <strong>AI Limitations:</strong> AI-generated lists are incredibly tailored, but PackMate is an assistant—not a definitive truth. It may occasionally suggest quirky items or forget niche essentials. Please use your best judgment to review your final list!
+                        </li>
+                    </ul>
+                </div>
+            </section>
         </div>
     );
 };

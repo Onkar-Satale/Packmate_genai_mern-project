@@ -11,14 +11,14 @@ const BotpressChat = () => {
     if (!injected1) {
       const script1 = document.createElement("script");
       script1.id = SCRIPT1_ID;
-      script1.src = process.env.REACT_APP_BOTPRESS_INJECT_JS || "https://cdn.botpress.cloud/webchat/v2.2/inject.js";
+      script1.src = process.env.REACT_APP_BOTPRESS_INJECT_JS;
       script1.async = true;
       script1.onload = () => {
         // Only load config AFTER inject script is fully loaded
         if (!document.getElementById(SCRIPT2_ID)) {
           const script2 = document.createElement("script");
           script2.id = SCRIPT2_ID;
-          script2.src = process.env.REACT_APP_BOTPRESS_CONFIG_JS || "https://files.bpcontent.cloud/2025/01/30/11/20250130110557-KVB0O0BH.js";
+          script2.src = process.env.REACT_APP_BOTPRESS_CONFIG_JS;
           script2.async = true;
           script2.onerror = (e) => console.error("Failed to load Botpress config script", e);
           document.body.appendChild(script2);
@@ -31,7 +31,7 @@ const BotpressChat = () => {
         if (!injected2) {
           const script2 = document.createElement("script");
           script2.id = SCRIPT2_ID;
-          script2.src = process.env.REACT_APP_BOTPRESS_CONFIG_JS || "https://files.bpcontent.cloud/2025/01/30/11/20250130110557-KVB0O0BH.js";
+          script2.src = process.env.REACT_APP_BOTPRESS_CONFIG_JS;
           script2.async = true;
           script2.onerror = (e) => console.error("Failed to load Botpress config script", e);
           document.body.appendChild(script2);

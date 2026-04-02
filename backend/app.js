@@ -17,7 +17,7 @@ app.set("trust proxy", 1);
 app.use(helmet());
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(url => url.trim())
-  : [process.env.FRONTEND_URL || "http://localhost:3000", "https://packmatefrontend.vercel.app"];
+  : [];
 
 app.use(cors({
   origin: function (origin, callback) {

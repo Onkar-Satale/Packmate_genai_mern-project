@@ -83,7 +83,7 @@ export default function ContactUs() {
           Accept: 'application/json'
         },
         body: JSON.stringify({
-          access_key: process.env.REACT_APP_WEB3FORMS_KEY || '7c30012f-a14c-4141-b8af-64707af29229',
+          access_key: process.env.REACT_APP_WEB3FORMS_KEY,
           subject: 'New Submission from PackMate Contact Form',
           email: formData.email,
           ...formData

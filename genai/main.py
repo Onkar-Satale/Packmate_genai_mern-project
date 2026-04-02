@@ -46,7 +46,6 @@ load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 # Retrieve API keys from environment variables
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-WEATHERAPI_API_KEY = os.getenv("WEATHERAPI_API_KEY")
 
 # Ensure the Groq API key is present before starting the app.
 if not GROQ_API_KEY:
@@ -61,6 +60,8 @@ http_session = requests.Session()
 
 # Simple in-memory cache for generated packing lists to prevent AI spam attacks
 generation_cache = {}
+# Cache for 10-day weather forecasts by location to prevent redundant API calls
+weather_cache = {}
 
 # Initialize the FastAPI application
 app = FastAPI(title="🎒Smart Packing Assistant API")
@@ -81,14 +82,14 @@ def root():
     """
     return {"message": "Smart Packing Assistant API is live ✅"}
 
-# Allow frontend origins defined in .env, falling back to locals for development
-frontend_env = os.getenv("FRONTEND_URLS", "http://localhost:3000,https://packmatefrontend.vercel.app")
-FRONTEND_URLS = [url.strip() for url in frontend_env.split(",") if url.strip()]
+# Allow frontend origins completely defined dynamically via .env
+frontend_env = os.getenv("FRONTEND_URL", "")
+FRONTEND_URL = [url.strip() for url in frontend_env.split(",") if url.strip()]
 
 # Add CORS middleware to allow the React frontend to communicate with this backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=FRONTEND_URLS,
+    allow_origins=FRONTEND_URL,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
@@ -179,115 +180,165 @@ def create_docx(packing_list: list):
     buffer.seek(0) # Reset buffer position to the start for reading
     return buffer
 
-def get_avg_temperature(location: str):
+def geocode_location(location: str):
     """
-    Fetches the current average temperature for the provided destination using WeatherAPI API.
-    
-    Args:
-        location (str): The name of the city or destination.
-        
-    Returns:
-        float | None: The temperature in Celsius if successful, or None if the request fails.
+    Looks up latitude and longitude for a given city string using Open-Meteo's Geocoding API.
     """
     try:
-        url = f"https://api.weatherapi.com/v1/current.json?key={WEATHERAPI_API_KEY}&q={location}"
+        url = f"https://geocoding-api.open-meteo.com/v1/search?name={location}&count=1"
+        res = http_session.get(url, timeout=5)
+        if res.status_code == 200:
+            data = res.json()
+            if "results" in data and len(data["results"]) > 0:
+                loc_data = data["results"][0]
+                lat = loc_data.get("latitude")
+                lon = loc_data.get("longitude")
+                logger.info(f"Geocoding success for '{location}': lat={lat}, lon={lon}")
+                return lat, lon
+            else:
+                logger.warning(f"Geocoding found no results for '{location}'")
+                return None, None
+        else:
+            logger.error(f"Geocoding API returned status {res.status_code}")
+            return None, None
+    except Exception as e:
+        logger.error(f"Geocoding error: {e}")
+        return None, None
+
+def prefetch_and_cache_weather(location: str):
+    """
+    Fetches the 16-day weather forecast using Open-Meteo API and caches it.
+    Returns the current/average temperature for the provided destination for response compatibility.
+    """
+    loc_key = location.lower().strip()
+    lat, lon = geocode_location(loc_key)
+    if lat is None or lon is None:
+        logger.warning(f"Skipping Open-Meteo forecast fetch due to geocoding failure for '{location}'")
+        return None
+
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min&forecast_days=16&timezone=auto"
         res = http_session.get(url, timeout=5)
         
         if res.status_code == 200:
             data = res.json()
-            if "current" in data:
-                return data["current"]["temp_c"]
+            api_temps = {}
+            current_temp = None
+            last_api_temp = None
+            
+            if "daily" in data:
+                daily = data["daily"]
+                time_list = daily.get("time", [])
+                max_temps = daily.get("temperature_2m_max", [])
+                min_temps = daily.get("temperature_2m_min", [])
+                
+                for i, dt_key in enumerate(time_list):
+                    t_max = max_temps[i]
+                    t_min = min_temps[i]
+                    if t_max is not None and t_min is not None:
+                        avg_temp = round((t_max + t_min) / 2.0, 1)
+                        api_temps[dt_key] = avg_temp
+                        last_api_temp = avg_temp
+                        if i == 0:
+                            current_temp = avg_temp
+                            
+            if current_temp is None and last_api_temp is not None:
+                current_temp = last_api_temp
+                
+            weather_cache[loc_key] = {
+                "api_temps": api_temps,
+                "last_api_temp": last_api_temp,
+                "fetched_at": time.time()
+            }
+            
+            logger.info(f"Weather prefetched from Open-Meteo for '{location}' and cached successfully.")
+            
+            return current_temp
         else:
-            logger.error(f"Weather API /current returned status {res.status_code}")
-        return None
+            logger.error(f"Open-Meteo API /forecast returned status {res.status_code}")
+            return None
     except Exception as e:
-        logger.error(f"Weather API error: {e}")
+        logger.error(f"Open-Meteo API error: {e}")
         return None
 
-def get_day_wise_weather(data: dict) -> str:
+def compute_full_trip_weather(data: dict) -> str:
     location = data.get("location", "").lower().strip()
     start_date_str = data.get("start_date")
     end_date_str = data.get("end_date")
+    trip_days = int(data.get("days", 1))
     
-    # Improved fallback: Use given temperature or a default value (20-30 C)
     fallback_temp = data.get('temperature')
     if fallback_temp is None:
         fallback_temp = random.randint(20, 30)
         logger.info(f"No temp provided, using random fallback: {fallback_temp}°C")
 
-    if not start_date_str or not end_date_str:
-        logger.info(f"Dates missing for {location}, returning uniform temp {fallback_temp}°C")
-        return f"Average temperature: {fallback_temp}°C"
-
     try:
-        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-        end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
-        
-        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        
-        total_days = (end_date - start_date).days + 1
-        if total_days <= 0: total_days = 1
+        # Fallback if dates are missing: use today + trip_days
+        if not start_date_str or not end_date_str:
+            logger.info(f"Dates missing for {location}, falling back to today + {trip_days} days")
+            start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            total_days = trip_days
+        else:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+            total_days = (end_date - start_date).days + 1
+            if total_days <= 0: total_days = 1
         
         date_list = [start_date + timedelta(days=i) for i in range(total_days)]
         
-        # 1. Fetch 10-day API forecast
-        api_temps = {}
-        last_api_temp = fallback_temp
-        
-        url = f"https://api.weatherapi.com/v1/forecast.json?key={WEATHERAPI_API_KEY}&q={location}&days=10"
-        try:
-            res = http_session.get(url, timeout=5)
-            if res.status_code == 200:
-                forecast_data = res.json()
-                if "forecast" in forecast_data and "forecastday" in forecast_data["forecast"]:
-                    for fday in forecast_data["forecast"]["forecastday"]:
-                        dt_key = fday["date"]
-                        t = fday["day"]["avgtemp_c"]
-                        api_temps[dt_key] = t
-                        last_api_temp = t
-            else:
-                logger.error(f"Weather API /forecast returned status {res.status_code}")
-        except Exception as e:
-            logger.error(f"Weather API forecast error: {e}")
+        cached_weather = weather_cache.get(location)
+        if not cached_weather:
+            # Graceful fetch in case prefetch wasn't called or cache was lost
+            logger.info("Weather cache miss in compute_full_trip_weather, fetching now.")
+            _ = prefetch_and_cache_weather(location)
+            cached_weather = weather_cache.get(location)
             
-        if not api_temps:
-            logger.info("API fetched no valid forecast temps. Falling back to default.")
+        if cached_weather and cached_weather.get("api_temps"):
+            api_temps = cached_weather["api_temps"]
+            # Retrieve 16th day (last available) temperature to act as our base
+            sorted_dates = sorted(api_temps.keys())
+            sixteenth_day_temp = api_temps[sorted_dates[-1]] if sorted_dates else fallback_temp
+        else:
+            api_temps = {}
+            sixteenth_day_temp = fallback_temp
 
-        forecast_lines = []
-        current_temp = last_api_temp
+        forecast_api_lines = []
+        forecast_extra_lines = []
+        current_temp = sixteenth_day_temp
 
         for dt in date_list:
             dt_str = dt.strftime("%Y-%m-%d")
-            # Calculate day_diff inside loop
-            day_diff = (dt - today).days
-
-            if dt_str in api_temps and day_diff <= 10:
+            
+            if dt_str in api_temps:
                 current_temp = api_temps[dt_str]
-                forecast_lines.append(f"{dt_str} → {current_temp}°C")
+                forecast_api_lines.append(f"{dt_str} → {current_temp}°C (Prefetched)")
             else:
-                # Smooth trend-based generation based on last known temp
-                if day_diff > 10:
-                   # Limit extreme jumps by replacing randint with smaller trend-bounded drifts
-                    drift = random.choice([-1, 0, 1])
-                    max_variation = 5
-                else: 
-                    drift = random.choice([-1, 0, 0, 1])
-                    max_variation = 3
-
+                drift = random.choices([-2, -1, 0, 1, 2], weights=[0.1, 0.35, 0.1, 0.35, 0.1])[0]
                 new_temp = current_temp + drift
 
-                # Constrain drifting temperatures
-                if abs(new_temp - last_api_temp) > max_variation:
-                    new_temp = current_temp # Deny the drift if it exceeds variation
+                if new_temp > sixteenth_day_temp + 5:
+                    new_temp = sixteenth_day_temp + 5
+                elif new_temp < sixteenth_day_temp - 5:
+                    new_temp = sixteenth_day_temp - 5
 
-                current_temp = new_temp
-                forecast_lines.append(f"{dt_str} → {current_temp}°C")
+                current_temp = round(new_temp, 1)
+                forecast_extra_lines.append(f"{dt_str} → {current_temp}°C (Generated Drift)")
         
-        logger.info(f"Generated {len(forecast_lines)} days forecast for {location}")
-        return "Day-wise temperature forecast:\n" + "\n".join(forecast_lines)
+        all_lines = forecast_api_lines + forecast_extra_lines
+        
+        formatted_output = f"\n================ FULL DAY-WISE TEMPERATURE MAPPING FOR '{location.upper()}' ================\n"
+        formatted_output += "\n".join(all_lines)
+        formatted_output += "\n=================================================================================="
+        
+        logger.info(formatted_output)
+        
+        clean_lines = [line.replace(" (Prefetched)", "").replace(" (Generated Drift)", "") for line in all_lines]
+        weather_text = "Day-wise temperature forecast:\n" + "\n".join(clean_lines)
+
+        return weather_text
 
     except Exception as e:
-        logger.error(f"Error generating day wise weather: {e}")
+        logger.error(f"Error generating full trip weather: {e}")
         return f"Average temperature: {fallback_temp}°C"
 
 def generate_packing_data(data: dict):
@@ -305,8 +356,8 @@ def generate_packing_data(data: dict):
     # Initialize the Groq client to call the LLM
     client = Groq(api_key=GROQ_API_KEY)
 
-    # Gather dynamic day-wise temperature array
-    temp_info = get_day_wise_weather(data)
+    # Gather dynamic day-wise temperature array from precomputed exact API logic
+    temp_info = compute_full_trip_weather(data)
     
     # Define the system prompt guiding the AI's behavior, establishing rules, and restricting the output format
     system_prompt = """
@@ -320,9 +371,9 @@ You are a senior professional travel planner and packing consultant. Your task i
 - Quantities, emojis, and items must be **dynamically decided** based on input data.
 - Use **standardized emojis per section** consistently.
 - Consider **traveler-specific details**: age, gender, medical notes, dietary restrictions, chronic conditions.
-- Consider **trip details**: location, climate, temperature, activities, duration, accommodation, budget, luggage style.
+- Consider **trip details**: location, activities, duration, accommodation, budget, luggage style.
 - Include optional, backup, and emergency items for all travelers.
-- Adjust items for **weather conditions** (cold, hot, rainy, humid) and trip duration.
+- EXTREMELY IMPORTANT: Take the provided day-by-day temperatures VERY seriously. Evaluate the exact high and low bounds and precisely adjust clothing (thermal wear, summer wear, thin layers) to perfectly match the temperature swings. Do NOT recommend winter items for hot days, or summer items for freezing days.
 - Ensure **practicality**: only include items travelers can realistically carry.
 - Output **only the packing list in a flat JSON list**, do not include greetings, explanations, or nested arrays.
 
@@ -551,8 +602,8 @@ Rules:
         logger.error(f"Groq city correction error: {e}")
         corrected_city = req.location # Fallback to original
         
-    # 2. Fetch weather for the corrected city
-    temp = get_avg_temperature(corrected_city)
+    # 2. Fetch API forecast and populate cache for the corrected city
+    temp = prefetch_and_cache_weather(corrected_city)
     
     return {"original": req.location, "location": corrected_city, "temperature": temp}
 
@@ -621,5 +672,5 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5001)), # Changed to 5001 to prevent Node port collision
-        reload=True
+        reload=False
     )
