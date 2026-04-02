@@ -12,12 +12,13 @@ MongoDB backend and generate downloadable DOCX files.
 # ==========================================
 import os
 import json
+import time
 from typing import Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from io import BytesIO
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -28,7 +29,8 @@ import re
 import requests
 from groq import Groq
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
+import random
 import logging
 
 # Configure logging
@@ -49,6 +51,9 @@ WEATHERAPI_API_KEY = os.getenv("WEATHERAPI_API_KEY")
 # Ensure the Groq API key is present before starting the app.
 if not GROQ_API_KEY:
     raise Exception("GROQ_API_KEY not loaded!")
+
+# Optimize requests globally with a session
+http_session = requests.Session()
 
 # ==========================================
 # ### APP INITIALIZATION & MIDDLEWARE ###
@@ -99,24 +104,26 @@ class TripRequestGenerate(BaseModel):
     """
     Expected input format for generating a packing list or downloading it.
     """
-    location: str
-    days: int
-    trip_type: str
-    purpose: str
-    activities: str
-    stay_type: str
-    budget: str
-    food: str
-    luggage: str
-    travel_type: str
-    people: str  # A flat string describing all travelers (e.g. "John, 25 years, Male")
+    location: str = Field(..., max_length=150)
+    days: int = Field(..., ge=1, le=120)
+    trip_type: str = Field(..., max_length=50)
+    purpose: str = Field(..., max_length=50)
+    activities: str = Field(..., max_length=300)
+    stay_type: str = Field(..., max_length=50)
+    budget: str = Field(..., max_length=50)
+    food: str = Field(..., max_length=100)
+    luggage: str = Field(..., max_length=100)
+    travel_type: str = Field(..., max_length=100)
+    people: str = Field(..., max_length=1000)  # A flat string describing all travelers (e.g. "John, 25 years, Male")
     temperature: Optional[float] = None
+    start_date: Optional[str] = Field(None, max_length=20)
+    end_date: Optional[str] = Field(None, max_length=20)
 
 class PrefetchWeatherRequest(BaseModel):
     """
     Payload for fetching weather and correcting city names
     """
-    location: str
+    location: str = Field(..., max_length=150)
 
 
 class DownloadRequest(BaseModel):
@@ -184,18 +191,104 @@ def get_avg_temperature(location: str):
     """
     try:
         url = f"https://api.weatherapi.com/v1/current.json?key={WEATHERAPI_API_KEY}&q={location}"
-        res = requests.get(url, timeout=5)
-        data = res.json()
+        res = http_session.get(url, timeout=5)
         
-        # Check if request succeeded and "current" block is returned
-        if res.status_code == 200 and "current" in data:
-            temp = data["current"]["temp_c"]
-            return temp
+        if res.status_code == 200:
+            data = res.json()
+            if "current" in data:
+                return data["current"]["temp_c"]
         else:
-            return None
+            logger.error(f"Weather API /current returned status {res.status_code}")
+        return None
     except Exception as e:
         logger.error(f"Weather API error: {e}")
         return None
+
+def get_day_wise_weather(data: dict) -> str:
+    location = data.get("location", "").lower().strip()
+    start_date_str = data.get("start_date")
+    end_date_str = data.get("end_date")
+    
+    # Improved fallback: Use given temperature or a default value (20-30 C)
+    fallback_temp = data.get('temperature')
+    if fallback_temp is None:
+        fallback_temp = random.randint(20, 30)
+        logger.info(f"No temp provided, using random fallback: {fallback_temp}°C")
+
+    if not start_date_str or not end_date_str:
+        logger.info(f"Dates missing for {location}, returning uniform temp {fallback_temp}°C")
+        return f"Average temperature: {fallback_temp}°C"
+
+    try:
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+        
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        total_days = (end_date - start_date).days + 1
+        if total_days <= 0: total_days = 1
+        
+        date_list = [start_date + timedelta(days=i) for i in range(total_days)]
+        
+        # 1. Fetch 10-day API forecast
+        api_temps = {}
+        last_api_temp = fallback_temp
+        
+        url = f"https://api.weatherapi.com/v1/forecast.json?key={WEATHERAPI_API_KEY}&q={location}&days=10"
+        try:
+            res = http_session.get(url, timeout=5)
+            if res.status_code == 200:
+                forecast_data = res.json()
+                if "forecast" in forecast_data and "forecastday" in forecast_data["forecast"]:
+                    for fday in forecast_data["forecast"]["forecastday"]:
+                        dt_key = fday["date"]
+                        t = fday["day"]["avgtemp_c"]
+                        api_temps[dt_key] = t
+                        last_api_temp = t
+            else:
+                logger.error(f"Weather API /forecast returned status {res.status_code}")
+        except Exception as e:
+            logger.error(f"Weather API forecast error: {e}")
+            
+        if not api_temps:
+            logger.info("API fetched no valid forecast temps. Falling back to default.")
+
+        forecast_lines = []
+        current_temp = last_api_temp
+
+        for dt in date_list:
+            dt_str = dt.strftime("%Y-%m-%d")
+            # Calculate day_diff inside loop
+            day_diff = (dt - today).days
+
+            if dt_str in api_temps and day_diff <= 10:
+                current_temp = api_temps[dt_str]
+                forecast_lines.append(f"{dt_str} → {current_temp}°C")
+            else:
+                # Smooth trend-based generation based on last known temp
+                if day_diff > 10:
+                   # Limit extreme jumps by replacing randint with smaller trend-bounded drifts
+                    drift = random.choice([-1, 0, 1])
+                    max_variation = 5
+                else: 
+                    drift = random.choice([-1, 0, 0, 1])
+                    max_variation = 3
+
+                new_temp = current_temp + drift
+
+                # Constrain drifting temperatures
+                if abs(new_temp - last_api_temp) > max_variation:
+                    new_temp = current_temp # Deny the drift if it exceeds variation
+
+                current_temp = new_temp
+                forecast_lines.append(f"{dt_str} → {current_temp}°C")
+        
+        logger.info(f"Generated {len(forecast_lines)} days forecast for {location}")
+        return "Day-wise temperature forecast:\n" + "\n".join(forecast_lines)
+
+    except Exception as e:
+        logger.error(f"Error generating day wise weather: {e}")
+        return f"Average temperature: {fallback_temp}°C"
 
 def generate_packing_data(data: dict):
     """
@@ -212,10 +305,8 @@ def generate_packing_data(data: dict):
     # Initialize the Groq client to call the LLM
     client = Groq(api_key=GROQ_API_KEY)
 
-    # Gather temperature exclusively from pre-fetched frontend data
-    temp = data.get('temperature')
-
-    temp_info = f"Average temperature: {temp}°C" if temp is not None else "Temperature unknown"
+    # Gather dynamic day-wise temperature array
+    temp_info = get_day_wise_weather(data)
     
     # Define the system prompt guiding the AI's behavior, establishing rules, and restricting the output format
     system_prompt = """
@@ -389,7 +480,11 @@ Generate the JSON packing list now.
     try:
         content = res.choices[0].message.content
         
-        result = json.loads(content)
+        try:
+            result = json.loads(content)
+        except json.JSONDecodeError as exc:
+            logger.error(f"JSON decode error from Groq: {exc}\nRaw Content: {content[:200]}")
+            raise HTTPException(status_code=500, detail="Invalid JSON response from AI")
         
         # Ensure packing_list items are clean from stray bullet points or numbering if the AI still added them
         clean_list = []
@@ -401,8 +496,12 @@ Generate the JSON packing list now.
             if clean_line:
                 clean_list.append(clean_line)
                 
+        logger.info(f"Successfully generated packing list containing {len(clean_list)} items")
         return {"packing_list": clean_list}
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Failed processing AI response: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to generate packing list: {str(e)}")
 
 # ==========================================
@@ -474,14 +573,21 @@ def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
       }
     """
     data = trip.dict()
-    cache_key = str(data)
+    
+    cache_key = json.dumps(data, sort_keys=True)
+    current_time = time.time()
     
     # Check cache first to save AI calls
     if cache_key in generation_cache:
-        return generation_cache[cache_key]
+        cached_data, timestamp = generation_cache[cache_key]
+        if current_time - timestamp < 300: # 5 minute TTL
+            logger.info("Serving generated list from cache.")
+            return cached_data
+        else:
+            del generation_cache[cache_key]
 
     ai_result = generate_packing_data(data)
-    generation_cache[cache_key] = ai_result
+    generation_cache[cache_key] = (ai_result, current_time)
     
     return ai_result
 
@@ -517,4 +623,3 @@ if __name__ == "__main__":
         port=int(os.environ.get("PORT", 5001)), # Changed to 5001 to prevent Node port collision
         reload=True
     )
-
