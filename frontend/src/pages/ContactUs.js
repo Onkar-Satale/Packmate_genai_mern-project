@@ -114,7 +114,7 @@ export default function ContactUs() {
 
   return (
     <div className="contact-container">
-      <ToastContainer position="top-right" autoClose={5000} />
+
 
       <main>
         <section>

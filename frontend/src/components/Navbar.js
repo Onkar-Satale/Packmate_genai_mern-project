@@ -1,18 +1,26 @@
 import './Navbar.css';
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogoClick = () => {
     user ? navigate('/account') : navigate('/login');
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = async () => {
+    await logout();
+    setShowLogoutModal(false);
+    toast.success("Logged out successfully");
     navigate('/');
   };
 
@@ -25,9 +33,10 @@ const Navbar = () => {
   ];
 
   return (
-    <div className="navbar">
+    <>
+      <div className="navbar">
 
-      {/* 🔥 TOP ROW */}
+        {/* 🔥 TOP ROW */}
       <div className="navbar-top">
 
         <div className="navbar-left">
@@ -59,7 +68,7 @@ const Navbar = () => {
               </NavLink>
             </>
           ) : (
-            <button className="auth-btn" onClick={handleLogout}>
+            <button className="auth-btn" onClick={handleLogoutClick}>
               Logout
             </button>
           )}
@@ -90,6 +99,30 @@ const Navbar = () => {
       </div>
 
     </div>
+
+    {/* Logout Modal */}
+    {showLogoutModal && (
+      <div className="delete-modal-overlay" style={{ zIndex: 9999 }}>
+        <div className="delete-modal">
+          <p>Do you want to logout or not?</p>
+          <div className="delete-modal-buttons" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+            <button 
+              onClick={() => setShowLogoutModal(false)}
+              className="modal-btn cancel-btn"
+            >
+              No
+            </button>
+            <button 
+              onClick={confirmLogout}
+              className="modal-btn confirm-btn"
+            >
+              Yes, Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

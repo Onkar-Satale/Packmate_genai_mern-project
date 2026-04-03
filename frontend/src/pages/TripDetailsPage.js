@@ -11,6 +11,7 @@ const TripDetailsPage = () => {
     const [trip, setTrip] = useState(null);
     const [selectedPhotos, setSelectedPhotos] = useState([]);
     const [deleteModal, setDeleteModal] = useState({ show: false, noteIdx: null });
+    const [deletePhotoModal, setDeletePhotoModal] = useState({ show: false });
     const [isUploading, setIsUploading] = useState(false);
     const [isTickingMode, setIsTickingMode] = useState(false);
     const [draftPackingList, setDraftPackingList] = useState([]);
@@ -140,13 +141,18 @@ const TripDetailsPage = () => {
         );
     };
 
-    const handleDeleteSelectedPhotos = async () => {
+    const handleDeleteSelectedPhotos = () => {
+        setDeletePhotoModal({ show: true });
+    };
+
+    const confirmDeleteSelectedPhotos = async () => {
         const remainingPhotos = trip.photos.filter((_, index) => !selectedPhotos.includes(index));
 
         try {
             await api.put(`/trips/${id}`, { photos: remainingPhotos });
             setTrip({ ...trip, photos: remainingPhotos });
             setSelectedPhotos([]);
+            setDeletePhotoModal({ show: false });
             toast.success("Photos deleted successfully!");
         } catch (err) {
             console.error("Failed to delete photos", err);
@@ -207,7 +213,7 @@ const TripDetailsPage = () => {
         setDraftPackingList(updatedDraft);
     };    return (
         <div className="trip-details-page">
-            <ToastContainer position="top-right" autoClose={3000} />
+
             <h1>
                 Trip Details of 🌍
                 <span style={{ color: "#3a009e", fontWeight: "700" }}>
@@ -572,6 +578,29 @@ const TripDetailsPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Custom Delete Photo Modal */}
+            {deletePhotoModal.show && (
+                <div className="delete-modal-overlay">
+                    <div className="delete-modal">
+                        <p>Do you want to delete these photos?</p>
+                        <div className="delete-modal-buttons">
+                            <button
+                                className="modal-btn cancel-btn"
+                                onClick={() => setDeletePhotoModal({ show: false })}
+                            >
+                                No
+                            </button>
+                            <button
+                                className="modal-btn confirm-btn"
+                                onClick={confirmDeleteSelectedPhotos}
+                            >
+                                Yes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -3,6 +3,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api/axiosConfig";
+import { toast } from "react-toastify";
 import "./AccountPage.css";
 
 const AccountPage = () => {
@@ -75,8 +76,10 @@ const AccountPage = () => {
 
             setShowDeleteModal(false);
             setTripToDelete(null);
+            toast.success("Trip successfully deleted!");
         } catch (err) {
             console.error("Failed to delete trip", err);
+            toast.error("Failed to delete trip");
         } finally {
             setIsDeleting(false);
         }

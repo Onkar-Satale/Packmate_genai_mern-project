@@ -104,7 +104,7 @@ export default function Login() {
 
   return (
     <div className="login-page-wrap">
-      <ToastContainer position="top-right" autoClose={3000} />
+
 
       <div className="login-container">
         <h2>Login to Your Account</h2>

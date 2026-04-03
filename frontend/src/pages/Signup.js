@@ -118,7 +118,7 @@ export default function Signup() {
 
     return (
         <div className="login-page-wrap">
-            <ToastContainer position="top-right" autoClose={3000} />
+
             <div className="login-container">
                 <h2>Create Your Account</h2>
 

@@ -1,6 +1,8 @@
 // src/App.js
 import React, { useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Navbar'; // Import Navbar component
 import Footer from './components/Footer'; // Import Footer component
 import Home from './pages/Home'; // Import the Home component
@@ -28,6 +30,7 @@ const App = () => {
 
   return (
     <Router>
+      <ToastContainer position="top-right" autoClose={1500} closeButton={false} closeOnClick={false} pauseOnHover={false} />
       {/* Navbar component with logout prop */}
       <Navbar logout={logout} />
       <BotpressChat />

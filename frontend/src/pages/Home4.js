@@ -86,7 +86,7 @@ const Home4 = () => {
 
   return (
     <div>
-      <ToastContainer position="top-right" autoClose={4000} />
+
 
       <div className="testimonials">
         <h2>What Users Say !?</h2>
