@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 export const aiApi = axios.create({
-    baseURL: process.env.REACT_APP_AI_URL , 
+    baseURL: process.env.REACT_APP_API_URL + '/ai', 
 });
 
 // Add a request interceptor
@@ -22,7 +22,19 @@ api.interceptors.request.use(
         return Promise.reject(error);
     }
 );
-
+// Add a request interceptor for aiApi
+aiApi.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 // Response interceptor to elegantly handle expired access tokens and try to hit /refresh-token
 api.interceptors.response.use(
     (response) => response,
