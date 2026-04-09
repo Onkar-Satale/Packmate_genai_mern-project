@@ -2,10 +2,13 @@ const axios = require('axios');
 const ApiError = require('../utils/ApiError');
 
 const genaiUrl = process.env.GENAI_SERVICE_URL || 'http://localhost:5001';
+const genaiApiSecret = process.env.GENAI_API_SECRET || '';
 
 exports.prefetchWeather = async (req, res, next) => {
   try {
-    const response = await axios.post(`${genaiUrl}/prefetch-weather`, req.body);
+    const response = await axios.post(`${genaiUrl}/prefetch-weather`, req.body, {
+      headers: { 'x-api-key': genaiApiSecret }
+    });
     res.json(response.data);
   } catch (err) {
     if (err.response) {
@@ -17,7 +20,9 @@ exports.prefetchWeather = async (req, res, next) => {
 
 exports.generatePackingList = async (req, res, next) => {
   try {
-    const response = await axios.post(`${genaiUrl}/generate-packing-list`, req.body);
+    const response = await axios.post(`${genaiUrl}/generate-packing-list`, req.body, {
+      headers: { 'x-api-key': genaiApiSecret }
+    });
     res.json(response.data);
   } catch (err) {
     if (err.response) {
@@ -30,6 +35,7 @@ exports.generatePackingList = async (req, res, next) => {
 exports.downloadPackingList = async (req, res, next) => {
   try {
     const response = await axios.post(`${genaiUrl}/download-packing-list`, req.body, {
+      headers: { 'x-api-key': genaiApiSecret },
       responseType: 'stream'
     });
     

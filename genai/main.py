@@ -15,7 +15,7 @@ import json
 import time
 from typing import Optional
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -48,6 +48,14 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # Ensure the Groq API key is present before starting the app.
 if not GROQ_API_KEY:
     raise Exception("GROQ_API_KEY not loaded!")
+
+GENAI_API_SECRET = os.getenv("GENAI_API_SECRET", "")
+
+def verify_api_key(x_api_key: str = Header(None)):
+    if not GENAI_API_SECRET:
+        logger.warning("GENAI_API_SECRET is not set. Service is unprotected!")
+    elif x_api_key != GENAI_API_SECRET:
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid API Key")
 
 # Optimize requests globally with a session
 http_session = requests.Session()
@@ -552,7 +560,7 @@ Generate the JSON packing list now.
 # ### API ENDPOINTS ###
 # ==========================================
 
-@app.post("/prefetch-weather")
+@app.post("/prefetch-weather", dependencies=[Depends(verify_api_key)])
 def api_prefetch_weather(req: PrefetchWeatherRequest):
     """
     Endpoint to correct the city name using Groq, then prefetch the temperature.
@@ -601,7 +609,7 @@ Rules:
     return {"original": req.location, "location": corrected_city, "temperature": temp}
 
 
-@app.post("/generate-packing-list")
+@app.post("/generate-packing-list", dependencies=[Depends(verify_api_key)])
 # Node.js API gateway handles rate limiting
 def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
     """
@@ -635,7 +643,7 @@ def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
     
     return ai_result
 
-@app.post("/download-packing-list")
+@app.post("/download-packing-list", dependencies=[Depends(verify_api_key)])
 def api_download_packing_list(req: DownloadRequest):
     """
     Endpoint that packages the provided packing list directly into a downloadable .docx file.
