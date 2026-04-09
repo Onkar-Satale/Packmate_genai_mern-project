@@ -9,6 +9,7 @@ const path = require("path");
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const tripRoutes = require('./routes/trips');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 app.set("trust proxy", 1);
@@ -61,6 +62,7 @@ app.use("/api/register", apiLimiter);
 // 5. Mount API Routes
 app.use('/api', authRoutes);
 app.use('/api/trips', tripRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/', (req, res) => {

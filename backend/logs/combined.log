@@ -57,3 +57,7 @@
 {"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 23:14:55"}
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-02 23:15:22"}
 {"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-03 11:29:54"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-03 11:53:03"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-09 20:58:43"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-04-09 20:59:47"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-09 20:59:47"}

@@ -20,9 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from io import BytesIO
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
+from fastapi import Request
 from fastapi import Request
 from docx import Document
 import re
@@ -66,12 +64,7 @@ weather_cache = {}
 # Initialize the FastAPI application
 app = FastAPI(title="🎒Smart Packing Assistant API")
 
-# Setup rate limiting to prevent abuse. get_remote_address uses the client's IP.
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-
-# Register a custom exception handler to gracefully return an error when limits are exceeded.
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Rate limiting is now handled securely by the Node.js API Gateway (express-rate-limit).
 
 # Health-check root endpoint
 @app.get("/")
@@ -609,7 +602,7 @@ Rules:
 
 
 @app.post("/generate-packing-list")
-@limiter.limit("5/minute") # Rate limiting endpoint to 5 requests per minute per IP
+# Node.js API gateway handles rate limiting
 def api_generate_packing_list(request: Request, trip: TripRequestGenerate):
     """
     Primary API Endpoint to generate an AI-driven packing list.

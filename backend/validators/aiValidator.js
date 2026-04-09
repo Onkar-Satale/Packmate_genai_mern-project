@@ -1,0 +1,36 @@
+const { body } = require("express-validator");
+const { validateRequest } = require("./authValidator");
+
+const prefetchWeatherValidator = [
+  body("location").notEmpty().withMessage("Location is required").isString(),
+  validateRequest,
+];
+
+const generatePackingListValidator = [
+  body("location").notEmpty().isString(),
+  body("days").isInt({ min: 1, max: 120 }),
+  body("trip_type").notEmpty().isString(),
+  body("purpose").notEmpty().isString(),
+  body("activities").notEmpty().isString(),
+  body("stay_type").notEmpty().isString(),
+  body("budget").notEmpty().isString(),
+  body("food").notEmpty().isString(),
+  body("luggage").notEmpty().isString(),
+  body("travel_type").notEmpty().isString(),
+  body("people").notEmpty().isString(),
+  body("temperature").optional().isNumeric(),
+  body("start_date").optional().isString(),
+  body("end_date").optional().isString(),
+  validateRequest,
+];
+
+const downloadPackingListValidator = [
+  body("packing_list").isArray().notEmpty().withMessage("packing_list must be a non-empty array"),
+  validateRequest,
+];
+
+module.exports = {
+  prefetchWeatherValidator,
+  generatePackingListValidator,
+  downloadPackingListValidator,
+};
