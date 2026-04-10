@@ -24,9 +24,6 @@ exports.register = async (req, res, next) => {
     await authService.storeRefreshToken(user._id, refreshToken);
     
     setRefreshCookie(res, refreshToken);
-
-    
-
     res.status(201).json({
       success: true,
       data: {

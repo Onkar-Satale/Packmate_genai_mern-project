@@ -18,7 +18,7 @@ const generatePackingListValidator = [
   body("luggage").notEmpty().isString(),
   body("travel_type").notEmpty().isString(),
   body("people").notEmpty().isString(),
-  body("temperature").optional().isNumeric(),
+  body("temperature").optional({ nullable: true }).isNumeric(),
   body("start_date").optional().isString(),
   body("end_date").optional().isString(),
   validateRequest,

@@ -86,3 +86,10 @@
 {"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:48:34"}
 {"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:48:44"}
 {"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:49:11"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:53:14"}
+{"level":"error","message":"401 - Invalid or expired token - /api/ai/prefetch-weather - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 23:02:58"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 23:02:58"}
+{"level":"error","message":"500 - Failed to communicate with GenAI service - /api/ai/prefetch-weather - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 23:03:09"}
+{"level":"error","message":"400 - Invalid value - /api/ai/generate-packing-list - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 23:03:19"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 23:05:13"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 23:05:53"}
