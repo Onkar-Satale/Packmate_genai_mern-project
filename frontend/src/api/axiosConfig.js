@@ -62,4 +62,38 @@ api.interceptors.response.use(
     }
 );
 
+// Add response interceptor for aiApi to handle token refreshes identically
+aiApi.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        
+        // If 401 and we haven't blindly retried yet
+        if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/refresh-token' && originalRequest.url !== '/login') {
+            originalRequest._retry = true;
+            try {
+                // The browser automatically attaches the HttpOnly refreshToken cookie here
+                const res = await axios.post(`${api.defaults.baseURL}/refresh-token`, {}, { withCredentials: true });
+                if (res.data?.success && res.data.data?.token) {
+                    localStorage.setItem('token', res.data.data.token);
+                    
+                    // Update header for both instances just to be safe
+                    api.defaults.headers.common['Authorization'] = `Bearer ${res.data.data.token}`;
+                    aiApi.defaults.headers.common['Authorization'] = `Bearer ${res.data.data.token}`;
+                    
+                    // Crucial: Update the specific failed request's token
+                    originalRequest.headers.Authorization = `Bearer ${res.data.data.token}`;
+                    
+                    return aiApi(originalRequest);
+                }
+            } catch (refreshError) {
+                // If refresh fails, they actually need to cleanly log in again
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;
