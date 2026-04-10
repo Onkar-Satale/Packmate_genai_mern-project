@@ -83,3 +83,6 @@
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 22:31:46"}
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 22:32:54"}
 {"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:39:36"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:48:34"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:48:44"}
+{"level":"info","message":"🚀 Server proudly serving requests on port 5000","service":"packmate-api","timestamp":"2026-04-10 22:49:11"}

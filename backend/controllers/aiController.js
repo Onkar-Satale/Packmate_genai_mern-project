@@ -1,8 +1,8 @@
 const axios = require('axios');
 const ApiError = require('../utils/ApiError');
 
-const genaiUrl = process.env.GENAI_SERVICE_URL || 'http://localhost:5001';
-const genaiApiSecret = process.env.GENAI_API_SECRET || '';
+const genaiUrl = process.env.GENAI_SERVICE_URL ;
+const genaiApiSecret = process.env.GENAI_API_SECRET;
 
 exports.prefetchWeather = async (req, res, next) => {
   try {
