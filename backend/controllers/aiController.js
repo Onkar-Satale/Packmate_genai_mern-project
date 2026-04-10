@@ -12,7 +12,8 @@ exports.prefetchWeather = async (req, res, next) => {
     res.json(response.data);
   } catch (err) {
     if (err.response) {
-      return next(new ApiError(err.response.status, err.response.data.detail || 'GenAI Error'));
+      const msg = err.response.data.detail || err.response.data.error || 'GenAI Error';
+      return next(new ApiError(err.response.status, msg));
     }
     console.error("GenAI Communication Error:", err.message);
     next(new ApiError(500, 'Failed to communicate with GenAI service'));
