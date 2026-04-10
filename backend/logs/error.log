@@ -43,3 +43,8 @@
 {"level":"error","message":"500 - CORS blocked origin - /api/register - OPTIONS - ::1","service":"packmate-api","timestamp":"2026-04-10 10:58:51"}
 {"level":"error","message":"500 - CORS blocked origin - /api/register - OPTIONS - ::1","service":"packmate-api","timestamp":"2026-04-10 10:59:00"}
 {"level":"error","message":"400 - User already exists - /api/register - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 11:00:59"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-04-10 22:29:29"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 22:29:29"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 22:31:38"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 22:31:46"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 22:32:54"}

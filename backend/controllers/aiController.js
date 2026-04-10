@@ -12,10 +12,10 @@ exports.prefetchWeather = async (req, res, next) => {
     res.json(response.data);
   } catch (err) {
     if (err.response) {
-      return next(new ApiError(err.response.data.detail || 'GenAI Error', err.response.status));
+      return next(new ApiError(err.response.status, err.response.data.detail || 'GenAI Error'));
     }
     console.error("GenAI Communication Error:", err.message);
-    next(new ApiError('Failed to communicate with GenAI service', 500));
+    next(new ApiError(500, 'Failed to communicate with GenAI service'));
   }
 };
 
@@ -27,10 +27,10 @@ exports.generatePackingList = async (req, res, next) => {
     res.json(response.data);
   } catch (err) {
     if (err.response) {
-      return next(new ApiError(err.response.data.detail || 'GenAI Error', err.response.status));
+      return next(new ApiError(err.response.status, err.response.data.detail || 'GenAI Error'));
     }
     console.error("GenAI Communication Error:", err.message);
-    next(new ApiError('Failed to communicate with GenAI service', 500));
+    next(new ApiError(500, 'Failed to communicate with GenAI service'));
   }
 };
 
@@ -50,9 +50,9 @@ exports.downloadPackingList = async (req, res, next) => {
     response.data.pipe(res);
   } catch (err) {
     if (err.response) {
-      return next(new ApiError(err.response.data.detail || 'GenAI Error', err.response.status));
+      return next(new ApiError(err.response.status, err.response.data.detail || 'GenAI Error'));
     }
     console.error("GenAI Communication Error:", err.message);
-    next(new ApiError('Failed to communicate with GenAI service', 500));
+    next(new ApiError(500, 'Failed to communicate with GenAI service'));
   }
 };
