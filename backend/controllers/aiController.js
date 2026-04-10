@@ -14,6 +14,7 @@ exports.prefetchWeather = async (req, res, next) => {
     if (err.response) {
       return next(new ApiError(err.response.data.detail || 'GenAI Error', err.response.status));
     }
+    console.error("GenAI Communication Error:", err.message);
     next(new ApiError('Failed to communicate with GenAI service', 500));
   }
 };
@@ -28,6 +29,7 @@ exports.generatePackingList = async (req, res, next) => {
     if (err.response) {
       return next(new ApiError(err.response.data.detail || 'GenAI Error', err.response.status));
     }
+    console.error("GenAI Communication Error:", err.message);
     next(new ApiError('Failed to communicate with GenAI service', 500));
   }
 };
@@ -50,6 +52,7 @@ exports.downloadPackingList = async (req, res, next) => {
     if (err.response) {
       return next(new ApiError(err.response.data.detail || 'GenAI Error', err.response.status));
     }
+    console.error("GenAI Communication Error:", err.message);
     next(new ApiError('Failed to communicate with GenAI service', 500));
   }
 };

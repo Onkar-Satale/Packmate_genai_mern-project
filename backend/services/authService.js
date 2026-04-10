@@ -5,7 +5,8 @@ const jwt = require("jsonwebtoken");
 class AuthService {
   async findUserByEmail(email) {
     // Explicitly select password for querying since we set 'select: false' in the Schema
-    return await User.findOne({ email }).select("+password");
+    const lowercasedEmail = email ? email.toLowerCase() : email;
+    return await User.findOne({ email: lowercasedEmail }).select("+password");
   }
 
   async findUserById(userId) {

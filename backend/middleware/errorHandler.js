@@ -12,7 +12,8 @@ const errorHandler = (err, req, res, next) => {
 
   // MongoDB Duplicate Key Error
   if (err.code === 11000) {
-    const message = `Duplicate field value entered`;
+    const field = Object.keys(err.keyValue)[0];
+    const message = `An account with that ${field} already exists. Please use a different one.`;
     error = new ApiError(400, message);
   }
 
