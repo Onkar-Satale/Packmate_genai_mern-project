@@ -49,8 +49,6 @@ const BotpressChat = () => {
 
   // 🖱️ Hide chat bot if clicking outside
   useEffect(() => {
-    let hideAttempts = 0;
-
     // Aggressive hide function targeting both standard APIs and iframe postMessages
     const forceHideBot = () => {
       try {
