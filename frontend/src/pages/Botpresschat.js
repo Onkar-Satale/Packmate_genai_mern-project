@@ -53,14 +53,23 @@ const BotpressChat = () => {
     const forceHideBot = () => {
       try {
         window.postMessage({ action: "hide", type: "botpress-webchat" }, "*");
+        
         if (window.botpressWebChat && typeof window.botpressWebChat.sendEvent === 'function') {
           if (window.botpressWebChat?.isOpen?.()) {
-            window.botpressWebChat.toggle();
+            const togglePromise = window.botpressWebChat.toggle();
+            if (togglePromise && typeof togglePromise.catch === 'function') togglePromise.catch(() => {});
           }
         }
+        
         if (window.botpress) {
-          if (typeof window.botpress.sendEvent === 'function') window.botpress.sendEvent({ type: "hide" });
-          if (typeof window.botpress.close === 'function') window.botpress.close();
+          if (typeof window.botpress.sendEvent === 'function') {
+             const eventPromise = window.botpress.sendEvent({ type: "hide" });
+             if (eventPromise && typeof eventPromise.catch === 'function') eventPromise.catch(() => {});
+          }
+          if (typeof window.botpress.close === 'function') {
+             const closePromise = window.botpress.close();
+             if (closePromise && typeof closePromise.catch === 'function') closePromise.catch(() => {});
+          }
         }
       } catch (err) { }
     };
