@@ -2,9 +2,14 @@ const authService = require("../services/authService");
 const ApiError = require("../utils/ApiError");
 
 const setRefreshCookie = (res, token) => {
+  // Use SameSite=Lax for dev (supports localhost:3000 to localhost:5000)
+  // Use SameSite=None for cross-origin setups or production (requires secure HTTPS)
+  const isProd = process.env.NODE_ENV === "production";
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd
   });
 };
 
@@ -72,7 +77,7 @@ exports.refreshToken = async (req, res, next) => {
     if (!refreshToken) return res.status(401).json({ success: false, message: "No refresh token available" });
     
     const decoded = authService.verifyRefreshToken(refreshToken);
-    const user = await authService.findUserById(decoded.userId).select("+refreshToken");
+    const user = await authService.findUserWithRefreshToken(decoded.userId);
     if (!user || user.refreshToken !== refreshToken) {
       return res.status(401).json({ success: false, message: "Invalid refresh token" });
     }
@@ -80,7 +85,7 @@ exports.refreshToken = async (req, res, next) => {
     const token = authService.generateAuthToken(user._id);
     res.json({ success: true, data: { token } });
   } catch(err) {
-    // Return standard 401 response without propagating a hard ApiError to the global logger
+    console.error("Refresh Token Error:", err);
     return res.status(401).json({ success: false, message: "Refresh token expired or invalid" });
   }
 };

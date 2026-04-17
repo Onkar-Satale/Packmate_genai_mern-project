@@ -13,6 +13,10 @@ class AuthService {
     return await User.findById(userId);
   }
 
+  async findUserWithRefreshToken(userId) {
+    return await User.findById(userId).select("+refreshToken");
+  }
+
   async registerUser(userData) {
     // Password hashing is now intercepted inherently by User.js
     const user = await User.create(userData);

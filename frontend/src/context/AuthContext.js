@@ -50,9 +50,9 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('firstName');
         localStorage.removeItem('lastName');
         
-        // Prevent redirect loop if already on login page
-        if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+        // Prevent redirect loop if already on home page
+        if (window.location.pathname !== '/') {
+            window.location.href = '/';
         }
     };
     
