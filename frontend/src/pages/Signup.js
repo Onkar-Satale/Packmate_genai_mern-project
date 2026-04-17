@@ -81,7 +81,7 @@ export default function Signup() {
             const { token, email, firstName, lastName } = res.data.data;
 
             localStorage.setItem("token", res.data.data.token);
-            localStorage.setItem("userEmail", res.data.data.email);
+            localStorage.setItem("email", res.data.data.email);
             localStorage.setItem('firstName', firstName);
             localStorage.setItem('lastName', lastName);
 

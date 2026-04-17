@@ -16,6 +16,8 @@ const TripDetailsPage = () => {
     const [isTickingMode, setIsTickingMode] = useState(false);
     const [draftPackingList, setDraftPackingList] = useState([]);
     const [isSavingPackingList, setIsSavingPackingList] = useState(false);
+    const [isDeleteMode, setIsDeleteMode] = useState(false);
+    const [itemsToDelete, setItemsToDelete] = useState([]);
 
 
     const handleDeleteNote = async (idx) => {
@@ -87,11 +89,23 @@ const TripDetailsPage = () => {
             setNotes(updatedNotes);
             setIsEditMode(false);
             setSelectedNoteIndex(null);
-            toast.success("Note saved successfully!");
+            toast.success(isEditMode ? "Note updated successfully!" : "Note saved successfully!");
         } catch (err) {
             console.error("Failed to save note", err);
             toast.error(err.response?.data?.message || "Failed to save note");
         }
+    };
+
+    const handleEditNote = (idx) => {
+        setIsEditMode(true);
+        setSelectedNoteIndex(idx);
+        setShowAdd(true);
+        setTimeout(() => {
+            if (noteTextRef.current) {
+                noteTextRef.current.value = notes[idx].text;
+                noteTextRef.current.focus();
+            }
+        }, 50);
     };
 
     useEffect(() => {
@@ -211,7 +225,52 @@ const TripDetailsPage = () => {
         }
         updatedDraft[sectionIdx] = { ...updatedDraft[sectionIdx], items };
         setDraftPackingList(updatedDraft);
-    };    return (
+    };
+
+    const handleStartDeleteMode = () => {
+        setIsDeleteMode(true);
+        setItemsToDelete([]);
+        setIsTickingMode(false);
+    };
+
+    const handleCancelDeleteMode = () => {
+        setIsDeleteMode(false);
+        setItemsToDelete([]);
+    };
+
+    const handleToggleDeleteSelect = (sectionIdx, itemIdx) => {
+        const id = `${sectionIdx}-${itemIdx}`;
+        setItemsToDelete((prev) => 
+            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleDeleteSelectedItems = async () => {
+        if (itemsToDelete.length === 0) return;
+
+        const updatedPackingList = trip.packingList.map((section, sIdx) => {
+            return {
+                ...section,
+                items: section.items.filter((_, iIdx) => !itemsToDelete.includes(`${sIdx}-${iIdx}`))
+            };
+        }).filter((section) => section.items.length > 0);
+
+        try {
+            setIsSavingPackingList(true);
+            await api.put(`/trips/${id}`, { packingList: updatedPackingList });
+            setTrip({ ...trip, packingList: updatedPackingList });
+            setIsDeleteMode(false);
+            setItemsToDelete([]);
+            toast.success("Selected items deleted!");
+        } catch (err) {
+            console.error("Failed to delete items", err);
+            toast.error(err.response?.data?.message || "Failed to delete items");
+        } finally {
+            setIsSavingPackingList(false);
+        }
+    };
+
+    return (
         <div className="trip-details-page">
 
             <h1>
@@ -303,11 +362,16 @@ const TripDetailsPage = () => {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px", flexWrap: "wrap", gap: "10px" }}>
                         <h2 style={{ margin: 0 }}>Packing List</h2>
                         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                            {!isTickingMode ? (
-                                <button className="edit-photos-btn" onClick={handleStartTicking} style={{ backgroundColor: "#3a009e", color: "white", borderColor: "#3a009e" }}>
-                                    ✅ Start Ticking
-                                </button>
-                            ) : (
+                            {!isTickingMode && !isDeleteMode ? (
+                                <>
+                                    <button className="edit-photos-btn" onClick={handleStartTicking} style={{ backgroundColor: "#3a009e", color: "white", borderColor: "#3a009e" }}>
+                                        ✅ Start Ticking
+                                    </button>
+                                    <button className="edit-photos-btn" onClick={handleStartDeleteMode} style={{ borderColor: "#ef4444", color: "#ef4444" }}>
+                                        🗑 Delete Items
+                                    </button>
+                                </>
+                            ) : isTickingMode ? (
                                 <>
                                     <button className="edit-photos-btn" onClick={handleResetTicking} style={{ borderColor: "#f97316", color: "#f97316" }}>
                                         🔄 Refresh
@@ -317,6 +381,26 @@ const TripDetailsPage = () => {
                                     </button>
                                     <button className="edit-photos-btn" onClick={handleSaveTicking} style={{ backgroundColor: "#10b981", color: "white", borderColor: "#10b981", opacity: isSavingPackingList ? 0.6 : 1, cursor: isSavingPackingList ? "not-allowed" : "pointer" }} disabled={isSavingPackingList}>
                                         {isSavingPackingList ? "💾 Saving..." : "💾 Save"}
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button className="edit-photos-btn" onClick={handleCancelDeleteMode}>
+                                        ❌ Cancel
+                                    </button>
+                                    <button 
+                                        className="edit-photos-btn" 
+                                        onClick={itemsToDelete.length > 0 ? handleDeleteSelectedItems : undefined}
+                                        style={{ 
+                                            backgroundColor: itemsToDelete.length > 0 ? "#ef4444" : "transparent",
+                                            color: itemsToDelete.length > 0 ? "white" : "#ef4444",
+                                            borderColor: "#ef4444", 
+                                            opacity: isSavingPackingList ? 0.6 : 1, 
+                                            cursor: isSavingPackingList || itemsToDelete.length === 0 ? "not-allowed" : "pointer" 
+                                        }} 
+                                        disabled={isSavingPackingList || itemsToDelete.length === 0}
+                                    >
+                                        {isSavingPackingList ? "🗑 Deleting..." : (itemsToDelete.length > 0 ? `🗑 Delete Selected (${itemsToDelete.length})` : "🗑 Select Items")}
                                     </button>
                                 </>
                             )}
@@ -351,9 +435,17 @@ const TripDetailsPage = () => {
                                                         style={{ margin: 0, flexShrink: 0, cursor: "pointer", width: "18px", height: "18px" }}
                                                     />
                                                 )}
+                                                {isDeleteMode && (
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={itemsToDelete.includes(`${idx}-${i}`)} 
+                                                        onChange={() => handleToggleDeleteSelect(idx, i)} 
+                                                        style={{ margin: 0, flexShrink: 0, cursor: "pointer", width: "18px", height: "18px", accentColor: "#ef4444" }}
+                                                    />
+                                                )}
                                                 <span style={{ 
                                                     textDecoration: isCompleted ? "line-through" : "none", 
-                                                    color: isCompleted ? "#888" : "#333",
+                                                    color: isDeleteMode && itemsToDelete.includes(`${idx}-${i}`) ? "#ef4444" : (isCompleted ? "#888" : "#333"),
                                                     display: "flex",
                                                     alignItems: "center",
                                                     whiteSpace: "nowrap",
@@ -390,13 +482,25 @@ const TripDetailsPage = () => {
                                 ref={noteTextRef}
                                 defaultValue={""}
                             />
-                            <button 
-                                className="save-note-btn" 
-                                onPointerDown={(e) => e.preventDefault()}
-                                onClick={handleSaveNote}
-                            >
-                                Save Note
-                            </button>
+                            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                                <button 
+                                    className="modal-btn cancel-btn"
+                                    onClick={() => {
+                                        setShowAdd(false);
+                                        setIsEditMode(false);
+                                        setSelectedNoteIndex(null);
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    className="save-note-btn" 
+                                    onPointerDown={(e) => e.preventDefault()}
+                                    onClick={handleSaveNote}
+                                >
+                                    {isEditMode ? "Save Edits" : "Save Note"}
+                                </button>
+                            </div>
                         </div>
                     )}
                     {!showAdd && (
@@ -411,10 +515,19 @@ const TripDetailsPage = () => {
                             notes.map((note, idx) => (
                                 <div key={idx} className="note-wrapper">
                                     <div className="note-thumb">
+                                        {/* Edit button */}
+                                        <button
+                                            className="note-edit-btn"
+                                            onClick={() => handleEditNote(idx)}
+                                            title="Edit Note"
+                                        >
+                                            ✎
+                                        </button>
                                         {/* X button */}
                                         <button
                                             className="note-delete-btn"
                                             onClick={() => setDeleteModal({ show: true, noteIdx: idx })}
+                                            title="Delete Note"
                                         >
                                             ×
                                         </button>

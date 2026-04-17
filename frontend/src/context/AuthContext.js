@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import api from '../api/axiosConfig';
+import api, { setAccessToken } from '../api/axiosConfig';
 
 export const AuthContext = createContext();
 
@@ -8,34 +8,66 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on refresh
+  // Initialize auth without accessing localStorage for token
   useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem('token');
-      const email = localStorage.getItem('email');
-      const firstName = localStorage.getItem('firstName');
-      const lastName = localStorage.getItem('lastName');
-
-      if (storedToken && email && firstName) {
-        setUser({ email, firstName, lastName: lastName !== "undefined" && lastName !== null ? lastName : "" });
-        setToken(storedToken);
+    const initAuth = async () => {
+      try {
+        // Hydrate access token using HttpOnly refreshToken cookie
+        const res = await api.post('/refresh-token');
+        if (res.data?.success && res.data.data?.token) {
+          const newToken = res.data.data.token;
+          setToken(newToken);
+          setAccessToken(newToken);
+          
+          const email = localStorage.getItem('email');
+          const firstName = localStorage.getItem('firstName');
+          const lastName = localStorage.getItem('lastName');
+          if (email && firstName) {
+            setUser({ email, firstName, lastName: lastName !== "undefined" && lastName !== null ? lastName : "" });
+          }
+        }
+      } catch (error) {
+        // Only log if the error is not an expected 401 Unauthorized
+        if (error.response?.status !== 401) {
+          console.error("Auth load error:", error);
+        }
+        setUser(null);
+        setToken(null);
+        setAccessToken(null);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Auth load error:", error);
-      setUser(null);
-      setToken(null);
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    initAuth();
+
+    // Listen for the centralized logout event emitted from axiosConfig.js
+    const handleLogoutEvent = () => {
+        setUser(null);
+        setToken(null);
+        setAccessToken(null);
+        localStorage.removeItem('email');
+        localStorage.removeItem('firstName');
+        localStorage.removeItem('lastName');
+        
+        // Prevent redirect loop if already on login page
+        if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+        }
+    };
+    
+    window.addEventListener('auth:logout', handleLogoutEvent);
+    return () => window.removeEventListener('auth:logout', handleLogoutEvent);
   }, []);
 
   const login = (userData) => {
-    const { token, email, firstName, lastName } = userData;
+    const { token: newToken, email, firstName, lastName } = userData;
 
     setUser({ email, firstName, lastName });
-    setToken(token);
+    setToken(newToken);
+    setAccessToken(newToken); // Update in memory variable securely
 
-    localStorage.setItem('token', token);
+    // Explicitly ONLY saving identifiable info, never tokens
     localStorage.setItem('email', email);
     localStorage.setItem('firstName', firstName);
     localStorage.setItem('lastName', lastName);
@@ -43,17 +75,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/logout');
+      await api.post('/logout'); // Assumes backend returns an instruction to clear the refresh token cookie
     } catch (err) {
       console.error("Logout error", err);
     }
-    setUser(null);
-    setToken(null);
-
-    localStorage.removeItem('token');
-    localStorage.removeItem('email');
-    localStorage.removeItem('firstName');
-    localStorage.removeItem('lastName');
+    // Triggers full cleanup by firing the custom event
+    window.dispatchEvent(new Event('auth:logout'));
   };
 
   return (

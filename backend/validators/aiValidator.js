@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body } = require("express-validator");  // express-validator-Library to validate request data
 const { validateRequest } = require("./authValidator");
 
 const prefetchWeatherValidator = [
@@ -19,8 +19,8 @@ const generatePackingListValidator = [
   body("travel_type").notEmpty().isString(),
   body("people").notEmpty().isString(),
   body("temperature").optional({ nullable: true }).isNumeric(),
-  body("start_date").optional().isString(),
-  body("end_date").optional().isString(),
+  body("start_date").notEmpty().isString(),
+  body("end_date").notEmpty().isString(),
   validateRequest,
 ];
 

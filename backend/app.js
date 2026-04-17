@@ -22,9 +22,11 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Dynamically allow origins hitting the local proxy from dev servers
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
       callback(null, true);
     } else {
+      console.warn('CORS blocked this Origin:', origin);
       callback(new Error('CORS blocked origin'), false);
     }
   },

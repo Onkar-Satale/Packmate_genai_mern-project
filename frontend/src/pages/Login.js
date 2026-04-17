@@ -64,13 +64,12 @@ export default function Login() {
 
       const { token, email, firstName, lastName } = res.data.data;
 
-      // Save user data
-      localStorage.setItem("token", res.data.data.token);
-      localStorage.setItem("userEmail", res.data.data.email);
+      // Save user data (Non-sensitive info only for UI hydration)
+      localStorage.setItem("email", res.data.data.email);
       localStorage.setItem('firstName', firstName);
       localStorage.setItem('lastName', lastName);
 
-      // Update global auth state
+      // Update global auth state (This securely establishes the in-memory singleton session)
       login({ token, email, firstName, lastName });
 
       toast.success("Login successful! Redirecting...");

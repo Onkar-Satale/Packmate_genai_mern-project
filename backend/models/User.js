@@ -10,7 +10,6 @@ const userSchema = new mongoose.Schema({
   },
   lastName: {
     type: String,
-
     trim: true,
   },
   email: {
@@ -40,7 +39,6 @@ const userSchema = new mongoose.Schema({
 userSchema.pre("save", async function() {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 12); // Enforce 12 salt rounds per spec
-
 });
 
 // Compare password securely
@@ -56,7 +54,6 @@ userSchema.methods.toJSON = function() {
   return obj;
 };
 
-// Create an index on email for extremely fast lookups
-userSchema.index({ email: 1 });
+// Note: Do NOT add `userSchema.index({ email: 1 })` here because unique: true already creates it!
 
 module.exports = mongoose.model("User", userSchema);

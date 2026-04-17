@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import api, { aiApi } from "../api/axiosConfig";
+import api from "../api/axiosConfig";
 import "./PackingAssistant.css";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -114,7 +114,7 @@ export default function PackingAssistant() {
         lastCheckedCityRef.current = city;
 
         try {
-            const weatherRes = await aiApi.post("/prefetch-weather", { location: city });
+            const weatherRes = await api.post("/ai/prefetch-weather", { location: city });
 
             const correctedCity = weatherRes.data.location;
             const temp = weatherRes.data.temperature;
@@ -241,7 +241,7 @@ export default function PackingAssistant() {
         };
 
         try {
-            const res = await aiApi.post("/generate-packing-list", payload);
+            const res = await api.post("/ai/generate-packing-list", payload);
             const formattedList = formatPackingListForDB(res.data.packing_list);
             setPackingList(formattedList);
             setSummary(res.data.summary || "");
@@ -370,7 +370,7 @@ export default function PackingAssistant() {
 
         try {
             setIsDownloading(true);
-            const res = await aiApi.post("/download-packing-list", payload, { responseType: "blob" });
+            const res = await api.post("/ai/download-packing-list", payload, { responseType: "blob" });
 
             const url = URL.createObjectURL(new Blob([res.data]));
             const a = document.createElement("a");

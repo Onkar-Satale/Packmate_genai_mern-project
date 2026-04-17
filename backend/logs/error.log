@@ -52,3 +52,30 @@
 {"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 23:02:58"}
 {"level":"error","message":"500 - Failed to communicate with GenAI service - /api/ai/prefetch-weather - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 23:03:09"}
 {"level":"error","message":"400 - Invalid value - /api/ai/generate-packing-list - POST - ::1","service":"packmate-api","timestamp":"2026-04-10 23:03:19"}
+{"level":"error","message":"401 - Invalid or expired token - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-04-11 11:48:14"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-11 11:48:14"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 10:18:57"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 10:19:04"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 10:45:44"}
+{"level":"error","message":"401 - No Bearer token provided - /api/trips/69e1c245e9fea9aed3883d38 - GET - ::1","service":"packmate-api","timestamp":"2026-04-17 10:58:59"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 10:58:59"}
+{"level":"error","message":"401 - No Bearer token provided - /api/trips/69e1c245e9fea9aed3883d38 - GET - ::1","service":"packmate-api","timestamp":"2026-04-17 10:59:25"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 10:59:25"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 10:59:25"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 10:59:26"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 11:03:12"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 11:03:16"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 11:07:20"}
+{"level":"error","message":"401 - No Bearer token provided - /api/trips - GET - ::1","service":"packmate-api","timestamp":"2026-04-17 11:07:21"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 11:07:21"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 11:07:21"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 11:07:24"}
+{"level":"error","message":"401 - Refresh token expired or invalid - /api/refresh-token - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 11:16:07"}
+{"level":"error","message":"500 - CORS blocked origin - /api/refresh-token - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:35:12"}
+{"level":"error","message":"500 - CORS blocked origin - /api/refresh-token - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:35:20"}
+{"level":"error","message":"500 - CORS blocked origin - /api/login - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:35:39"}
+{"level":"error","message":"500 - CORS blocked origin - /api/login - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:35:46"}
+{"level":"error","message":"500 - CORS blocked origin - /api/login - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:35:55"}
+{"level":"error","message":"500 - CORS blocked origin - /api/refresh-token - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:37:05"}
+{"level":"error","message":"500 - CORS blocked origin - /api/login - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:37:21"}
+{"level":"error","message":"500 - CORS blocked origin - /api/refresh-token - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:37:24"}

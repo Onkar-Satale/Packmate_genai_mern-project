@@ -21,7 +21,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from io import BytesIO
 from fastapi import Request
-from fastapi import Request
 from docx import Document
 import re
 import requests
@@ -89,7 +88,7 @@ FRONTEND_URL = [url.strip() for url in frontend_env.split(",") if url.strip()]
 
 # Add CORS middleware to allow the React frontend to communicate with this backend.
 app.add_middleware(
-    CORSMiddleware,
+    CORSMiddleware, 
     allow_origins=FRONTEND_URL,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
@@ -500,6 +499,12 @@ Food Preference: {data['food']}
 Luggage Style: {data['luggage']}
 Travel Mode: {data['travel_type']}
 Travelers details: {data['people']}
+Medical Notes: {data.get('medicalNotes')}
+Dietary Notes: {data.get('dietaryNotes')}
+Laundry Available: {data.get('laundry')}
+Shopping Planned: {data.get('shopping')}
+Photography Gear Needed: {data.get('photographyGear')}
+Work Laptop: {data.get('workLaptop')}
 
 
 Include all packing items dynamically based on:
@@ -582,7 +587,11 @@ Rules:
 2. Do NOT add any extra words, punctuation, or explanation.
 3. Output must be a single valid city or country name.
 4. If input is already correct, return it unchanged.
-5. If the input is invalid or cannot be corrected, return exactly: INVALID
+5. If the input is invalid or cannot be corrected, return exactly: INVALID.
+6. Never return completely new city name as corected city name of user  
+7. The corrected output MUST closely match the original input (only minor spelling fixes allowed).
+8. Do NOT replace the input with a more popular or well-known city.
+9. If unsure, return the original input exactly.
 """ 
     try:
         res = client.chat.completions.create(
