@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './HowItWorks.css';
 import img12 from '../assets/12.png';
 import img13 from '../assets/13.png';
-import BotpressChat from './Botpresschat';
+// import BotpressChat from './Botpresschat';
 
 export default function HowItWorks() {
   const navigate = useNavigate();
@@ -165,7 +165,7 @@ export default function HowItWorks() {
           </section>
         </main>
       }
-      <BotpressChat />
+      {/* <BotpressChat /> */}
     </div>
   );
 }
