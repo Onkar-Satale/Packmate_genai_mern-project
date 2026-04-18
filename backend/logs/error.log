@@ -81,3 +81,4 @@
 {"level":"error","message":"500 - CORS blocked origin - /api/refresh-token - POST - 127.0.0.1","service":"packmate-api","timestamp":"2026-04-17 11:37:24"}
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 22:05:05"}
 {"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-17 23:40:13"}
+{"level":"error","message":"401 - Invalid credentials - /api/login - POST - ::1","service":"packmate-api","timestamp":"2026-04-18 00:00:37"}

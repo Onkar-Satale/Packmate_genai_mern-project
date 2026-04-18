@@ -47,6 +47,46 @@ const BotpressChat = () => {
   const initialized = useRef(false);
   const location = useLocation();
 
+  // Automatic recovery for corrupted botpress state which causes 'conversation_creating' and 'EventSource' errors
+  useEffect(() => {
+    const handleUnhandledRejection = (event) => {
+      const isBotpressError = 
+        event.reason && 
+        (
+          (typeof event.reason.toString === 'function' && event.reason.toString().includes('conversation_creating')) ||
+          (event.reason.message && event.reason.message.includes('conversation_creating')) ||
+          (typeof event.reason.toString === 'function' && event.reason.toString().includes('EventSource')) ||
+          (event.reason.message && event.reason.message.includes('EventSource'))
+        );
+
+      if (isBotpressError) {
+        console.warn("Detected corrupted Botpress state. Forcing storage reset...");
+        
+        // aggressively clear botpress keys to get a fresh client Id
+        clearBotpressStorage();
+        
+        const currentUser = user?.email || localStorage.getItem("last_bp_user");
+        if (currentUser) {
+           localStorage.removeItem(`bp_state_${currentUser}`);
+        }
+        localStorage.removeItem("last_bp_user");
+        
+        // Prevent infinite reload loops 
+        if (!sessionStorage.getItem("bp_reloaded")) {
+          sessionStorage.setItem("bp_reloaded", "true");
+          window.location.reload();
+        } else {
+          console.error("Botpress failed to initialize even after clearing state.");
+        }
+      }
+    };
+    
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, [user]);
+
   // 🖱️ Hide chat bot if clicking outside
   useEffect(() => {
     // Aggressive hide function targeting both standard APIs and iframe postMessages
